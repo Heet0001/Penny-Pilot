@@ -3,7 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!--<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">-->
     <title>Penny Pilot</title>
     <link rel="stylesheet" href="style.css">
 </head>
@@ -13,20 +12,28 @@
 		<form action="#">
 			<h1>Create Account</h1><br>
 			<span>Use your email for registration</span>
-			<input type="text" placeholder="Name" />
-			<input type="email" placeholder="Email" />
-			<input type="password" placeholder="Password" />
-			<button>Sign Up</button>
+			<input type="text" placeholder="Name" id="signup-name" />
+			<input type="email" placeholder="Email" id="signup-email" />
+			<input type="password" placeholder="Password" id="signup-password" />
+			<div class="password-requirements">
+				Password must have:
+				<ul>
+					<li>At least 8 characters</li>
+					<li>At least 1 uppercase letter</li>
+					<li>At least 1 special character</li>
+					<li>At least 3 numbers</li>
+				</ul>
+			</div>
+			<button type="submit">Sign Up</button>
 		</form>
 	</div>
 	<div class="form-container sign-in-container">
 		<form action="#">
 			<h1>Sign in</h1><br>
 			<span>use your account</span>
-			<input type="email" placeholder="Email" />
-			<input type="password" placeholder="Password" />
-			<a href="#">Forgot your password?</a>
-			<button>Sign In</button>
+			<input type="email" placeholder="Email" id="signin-email" />
+			<input type="password" placeholder="Password" id="signin-password" />
+			<button type="submit">Sign In</button>
 		</form>
 	</div>
 	<div class="overlay-container">

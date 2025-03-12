@@ -1,11 +1,78 @@
+// Toggle between sign-in and sign-up panels
+const signUpButton = document.getElementById('signUp');
+const signInButton = document.getElementById('signIn');
+const container = document.getElementById('container');
+
+signUpButton.addEventListener('click', () => {
+    container.classList.add('right-panel-active');
+});
+
+signInButton.addEventListener('click', () => {
+    container.classList.remove('right-panel-active');
+});
+
+// Password validation function
+function validatePassword(password) {
+    // Check minimum length of 8 characters
+    if (password.length < 8) {
+        return {
+            valid: false,
+            message: 'Password must be at least 8 characters long'
+        };
+    }
+    
+    // Check for at least one uppercase letter
+    if (!/[A-Z]/.test(password)) {
+        return {
+            valid: false,
+            message: 'Password must contain at least one uppercase letter'
+        };
+    }
+    
+    // Check for at least one special character
+    if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) {
+        return {
+            valid: false,
+            message: 'Password must contain at least one special character (!@#$%^&*()_+-=[]{};\'"\\|,.<>/?)'
+        };
+    }
+    
+    // Check for at least three numbers
+    const numberCount = (password.match(/[0-9]/g) || []).length;
+    if (numberCount < 3) {
+        return {
+            valid: false,
+            message: `Password must contain at least 3 numbers (currently has ${numberCount})`
+        };
+    }
+    
+    return {
+        valid: true,
+        message: 'Password meets all requirements'
+    };
+}
+
 // Sign Up Form Submission
 document.querySelector('.sign-up-container form').addEventListener('submit', (e) => {
     e.preventDefault();
-    const name = document.querySelector('.sign-up-container input[type="text"]').value;
-    const email = document.querySelector('.sign-up-container input[type="email"]').value;
-    const password = document.querySelector('.sign-up-container input[type="password"]').value;
+    const name = document.getElementById('signup-name').value;
+    const email = document.getElementById('signup-email').value;
+    const password = document.getElementById('signup-password').value;
 
-    fetch('http://localhost:5000/signup', {
+    // Validate inputs
+    if (!name || !email || !password) {
+        alert('Please fill in all fields');
+        return;
+    }
+    
+    // Validate password
+    const passwordValidation = validatePassword(password);
+    if (!passwordValidation.valid) {
+        alert(passwordValidation.message);
+        return;
+    }
+
+    fetch('http://localhost:3000/signup', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
@@ -16,21 +83,35 @@ document.querySelector('.sign-up-container form').addEventListener('submit', (e)
     .then(data => {
         if (data.message) {
             alert(data.message);
-            window.location.href = '../penny-pilot-backend/dashboard.html'; // Correct path
+            // Switch to sign-in form instead of redirecting
+            container.classList.remove('right-panel-active');
+            // Clear the sign-up form
+            document.getElementById('signup-name').value = '';
+            document.getElementById('signup-email').value = '';
+            document.getElementById('signup-password').value = '';
         } else {
             alert(data.error);
         }
     })
-    .catch(error => console.error('Error:', error));
+    .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred. Please try again later.');
+    });
 });
 
 // Sign In Form Submission
 document.querySelector('.sign-in-container form').addEventListener('submit', (e) => {
     e.preventDefault();
-    const email = document.querySelector('.sign-in-container input[type="email"]').value;
-    const password = document.querySelector('.sign-in-container input[type="password"]').value;
+    const email = document.getElementById('signin-email').value;
+    const password = document.getElementById('signin-password').value;
 
-    fetch('http://localhost:5000/signin', {
+    // Validate inputs
+    if (!email || !password) {
+        alert('Please fill in all fields');
+        return;
+    }
+
+    fetch('http://localhost:3000/signin', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
@@ -41,10 +122,14 @@ document.querySelector('.sign-in-container form').addEventListener('submit', (e)
     .then(data => {
         if (data.message) {
             alert(data.message);
-            window.location.href = '../penny-pilot-backend/dashboard.html'; // Correct path
+            // Redirect to dashboard with the correct path
+            window.location.href = '../penny-pilot-backend/dashboard.html';
         } else {
             alert(data.error);
         }
     })
-    .catch(error => console.error('Error:', error));
-}); 
+    .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred. Please try again later.');
+    });
+});
