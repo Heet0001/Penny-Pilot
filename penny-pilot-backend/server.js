@@ -26,7 +26,7 @@ app.get('/dashboard', (req, res) => {
 const db = mysql.createConnection({
     host: 'localhost',
     user: 'root',
-    password: 'Mysql@1020',
+    password: 'Mysql@101010',
     database: 'penny_pilot'
 });
 
