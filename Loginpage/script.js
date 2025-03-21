@@ -123,7 +123,7 @@ document.querySelector('.sign-in-container form').addEventListener('submit', (e)
         if (data.message) {
             alert(data.message);
             // Redirect to dashboard with the correct path
-            window.location.href = '../penny-pilot-backend/dashboard.html';
+            window.location.href = '../Dashboard/dashboard.html';
         } else {
             alert(data.error);
         }
