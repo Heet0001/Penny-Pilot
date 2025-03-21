@@ -41,7 +41,9 @@ body {
 .nav-links li {
     margin: 0 15px;
 }
-
+p{
+    color: black;
+}
 .nav-links a {
     text-decoration: none;
     color: #fff;
