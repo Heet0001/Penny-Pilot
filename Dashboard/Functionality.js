@@ -282,3 +282,63 @@ document.addEventListener("DOMContentLoaded", function () {
         showModal(emergencyModal);
     });
 });
+// Collect Debt Modal Design with Closing Transition and Click Outside to Close
+document.addEventListener("DOMContentLoaded", function () {
+    const collectDebtModal = document.createElement("div");
+    collectDebtModal.id = "collect-debt-modal";
+    collectDebtModal.className = "modal-overlay hidden";
+    collectDebtModal.innerHTML = `
+        <div class="modal-content">
+            <h2>Collect or Return Debt</h2>
+            <label for="debt-action">Select Action:</label>
+            <select id="debt-action">
+                <option value="collect">Collect Debt</option>
+                <option value="return">Return Debt</option>
+            </select>
+            
+            <label for="debt-entry">Select Previous Entry:</label>
+            <select id="debt-entry">
+                <option value="" disabled selected>Select an entry</option>
+            </select>
+            
+            <label for="calculated-amount">Amount with Interest:</label>
+            <p id="calculated-amount">$0.00</p>
+            
+            <div class="modal-buttons">
+                <button id="close-collect-modal" class="modal-btn close-btn">Cancel</button>
+                <button id="confirm-collect" class="modal-btn save-btn">Confirm</button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(collectDebtModal);
+    
+    const collectDebtBtn = document.getElementById("collect-debt-btn");
+    const closeCollectModal = document.getElementById("close-collect-modal");
+    
+    collectDebtBtn?.addEventListener("click", function () {
+        collectDebtModal.classList.remove("hidden");
+        collectDebtModal.style.display = "flex";
+        setTimeout(() => {
+            collectDebtModal.style.opacity = "1";
+            collectDebtModal.style.transform = "scale(1)";
+        }, 10);
+    });
+    
+    function closeModal() {
+        collectDebtModal.style.opacity = "0";
+        collectDebtModal.style.transform = "scale(0.9)";
+        setTimeout(() => {
+            collectDebtModal.classList.add("hidden");
+            collectDebtModal.style.display = "none";
+        }, 300); // Match transition duration
+    }
+    
+    closeCollectModal?.addEventListener("click", closeModal);
+    
+    // Close modal when clicking outside
+    collectDebtModal.addEventListener("click", function (event) {
+        if (event.target === collectDebtModal) {
+            closeModal();
+        }
+    });
+});
