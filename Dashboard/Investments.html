@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Penny Pilot</title>
+    <link rel="stylesheet" href="Dashboard_style.css">
+    <link rel="stylesheet" href="Functionality.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper/swiper-bundle.min.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="logo">Penny Pilot</div>
+        
+        <div class="profile-container">
+            <img src="user.png" alt="Profile" id="profile-icon">
+            <span id="username-tooltip"></span> 
+        </div>
+
+    </nav>
+    <div class="middle-body">
+        <div class="left-buttons">
+            <button class="big-btn" id="add-entry-btn">Sell Stocks</button>
+            <div id="entry-modal" class="modal-overlay">
+                <div class="modal-content"> 
+                    <h2>Sell Stocks</h2>
+    
+                    <label for="entry-category">Select Stock</label>
+                    <select id="entry-category" aria-placeholder="">
+                        <option value="" disabled selected>Select an entry</option>
+                    </select>
+
+                    <label for="entry-amount">Rate</label>
+                    <input type="number" id="entry-amount" placeholder="Enter amount">
+
+                    <label for="entry-amount">Quantity</label>
+                    <input type="number" id="entry-amount" placeholder="Enter amount">
+            
+                    <label for="entry-date">Selling Date:</label>
+                    <input type="date" id="entry-date">
+            
+                    <div class="modal-buttons">   
+                        <button id="close-modal" class="modal-btn close-btn">Cancel</button>
+                        <button id="save-entry" class="modal-btn save-btn">Save</button>
+                    </div>
+                </div>
+            </div>            
+            <button class="big-btn" id="debit-entry-btn">Buy Stocks</button>
+            <div id="debit-modal" class="modal-overlay">
+                <div class="modal-content">
+                    <h2>Buy Stocks</h2>
+            
+                    <label for="stock-name">Name of share</label>
+                    <input type="text" id="stock-name" placeholder="Enter Stock Name">
+                    
+                    <label for="debit-amount">Rate</label>
+                    <input type="number" id="debit-amount" placeholder="Enter amount">
+
+                    <label for="debit-amount">Quantity</label>
+                    <input type="number" id="debit-amount" placeholder="Enter amount">
+            
+                    <label for="debit-date">Buying Date:</label>
+                    <input type="date" id="debit-date">
+            
+                    <label for="debit-description">Description:</label>
+                    <textarea id="debit-description" placeholder="Enter details"></textarea>
+            
+                    <div class="modal-buttons">
+                        <button id="close-debit-modal" class="modal-btn close-btn">Cancel</button>
+                        <button id="save-debit" class="modal-btn save-btn">Save</button>
+                    </div>
+                </div>           
+            </div>
+               
+            <button class="big-btn" id="wallet-btn">Wallet</button>
+            <div id="wallet-modal" class="modal-overlay">
+                <div class="modal-content">
+                    <h2>Wallet</h2>
+                    <p><span id="wallet-balance">$0.00</span></p>
+                    <p>Invested Amount : $0.00</p>
+                    <p>Current Amount : $0.00</p>
+                    
+                    <div class="modal-buttons">
+                        <button id="add-expense-btn" class="modal-btn close-btn">Buy Stocks</button>
+                        <button id="add-funds-btn" class="modal-btn save-btn">Sell Stocks</button>
+                        <button id="close-wallet-btn" class="modal-btn close-btn">Close</button>
+                    </div>
+                </div>
+            </div>
+            
+        </div>        
+        <div class="swiper">
+            <div class="swiper-wrapper">
+                <div class="swiper-slide">
+                    <div class="date-picker-container">
+                        <label for="from-date">From Date:</label>
+                        <input type="date" id="from-date">
+                    
+                        <label for="to-date">To Date:</label>
+                        <input type="date" id="to-date">
+                    </div> 
+                    <button class="small-btn">Export PDF</button>                  
+                </div>
+                <div class="swiper-slide">
+                    <div class="date-picker-container">
+                        <label for="from-date">From Date:</label>
+                        <input type="date" id="from-date">
+                    
+                        <label for="to-date">To Date:</label>
+                        <input type="date" id="to-date">
+                    </div>    
+                    <button class="small-btn">Export PDF</button>   
+                </div>
+                <div class="swiper-slide">
+                    <div class="date-picker-container">
+                        <label for="from-date">From Date:</label>
+                        <input type="date" id="from-date">
+                    
+                        <label for="to-date">To Date:</label>
+                        <input type="date" id="to-date">
+                    </div>   
+                    <button class="small-btn">Export PDF</button>    
+                </div>
+            </div>
+            <!-- Navigation buttons -->
+            <div class="swiper-button-next"></div>
+            <div class="swiper-button-prev"></div>
+            <!-- Pagination -->
+            <div class="swiper-pagination"></div>
+        </div>
+    </div>
+
+    <div class="bottom-buttons">
+        <button class="nav-btn" data-index="0">Expenditure</button>
+        <button class="nav-btn" >Debts</button>
+        <button class="nav-btn" >Investments</button>
+        <button class="nav-btn" data-index="3">Transfer Money</button>
+    </div>
+    
+
+    <script src="Functionality.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/swiper/swiper-bundle.min.js"></script>
+    <script src="Dashboard_script.js"></script>
+</body>
+</html>
