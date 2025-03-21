@@ -36,8 +36,9 @@
 .modal-content label {
     display: block;
     margin-top: 10px;
-    font-weight: bold;
+    font-size: small ;
     text-align: left;
+    color: black;
 }
 
 .modal-content input,
