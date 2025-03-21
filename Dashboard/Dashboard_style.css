@@ -243,5 +243,71 @@ p{
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
 }
 
+/* Add this to your Dashboard_style.css file */
+
+/* Profile container styling */
+.profile-container {
+    position: relative;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+}
+
+/* Profile icon styling */
+#profile-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #fff;
+    transition: transform 0.2s;
+}
+
+#profile-icon:hover {
+    transform: scale(1.1);
+}
+
+/* Username tooltip styling */
+#username-tooltip {
+    margin-left: 10px;
+    font-weight: 500;
+    color: white;
+}
+
+/* Dropdown menu styling */
+.profile-dropdown {
+    position: absolute;
+    top: 50px;
+    right: 0;
+    width: 150px;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    z-index: 1000;
+    overflow: hidden;
+}
+
+/* Dropdown items styling */
+.dropdown-item {
+    padding: 12px 15px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    font-size: 14px;
+}
+
+.dropdown-item:hover {
+    background-color: #f0f0f0;
+}
+
+/* Logout button specific styling */
+#logout-btn {
+    color: #e74c3c;
+    font-weight: 500;
+    border-top: 1px solid #eee;
+}
+
+#settings-btn {
+    color: #333;
+}
 
 
