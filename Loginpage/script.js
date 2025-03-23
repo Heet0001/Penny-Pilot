@@ -100,36 +100,47 @@ document.querySelector('.sign-up-container form').addEventListener('submit', (e)
 });
 
 // Sign In Form Submission
-document.querySelector('.sign-in-container form').addEventListener('submit', (e) => {
+// // Add this code to your sign-in form submission handler
+
+document.querySelector('.sign-in-container form').addEventListener('submit', function(e) {    
     e.preventDefault();
+    
     const email = document.getElementById('signin-email').value;
     const password = document.getElementById('signin-password').value;
-
-    // Validate inputs
+    
+    // Validate form fields
     if (!email || !password) {
-        alert('Please fill in all fields');
+        alert('Please fill in all required fields');
         return;
     }
-
+    
+    // Send login request to the server
     fetch('http://localhost:3000/signin', {
         method: 'POST',
         headers: {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ email, password })
+        body: JSON.stringify({ email, password }),
     })
-    .then(response => response.json())
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        return response.json();
+    })
     .then(data => {
-        if (data.message) {
-            alert(data.message);
-            // Redirect to dashboard with the correct path
+        if (data.user) {
+            // Store user info in localStorage for later use
+            localStorage.setItem('currentUser', JSON.stringify(data.user));
+            
+            // Redirect to dashboard
             window.location.href = '../Dashboard/dashboard.html';
         } else {
-            alert(data.error);
+            alert(data.error || 'Login failed. Please check your credentials.');
         }
     })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('An error occurred. Please try again later.');
+    .catch((error) => {
+        console.error('Error during login:', error);
+        alert('Login failed. Please try again.');
     });
 });
