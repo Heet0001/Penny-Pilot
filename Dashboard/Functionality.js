@@ -688,3 +688,42 @@ function displayEmergencyFundBalance() {
         emergencyBalanceDisplay.textContent = `$${getEmergencyFundBalance().toFixed(2)}`;
     }
 }
+
+
+
+
+// This code should be added to one of your JavaScript files (like Dashboard_script.js)
+document.addEventListener('DOMContentLoaded', function() {
+    // Get all navigation buttons
+    const navButtons = document.querySelectorAll('.nav-btn');
+    
+    // Add click event listener to each navigation button
+    navButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const index = this.getAttribute('data-index');
+            
+            // For buttons with data-index attribute
+            if (index !== null) {
+                switch(index) {
+                    case "0": // Expenditure - redirect to dashboard.html
+                        window.location.href = '../Dashboard/dashboard.html';
+                        break;
+                    case "3": // Transfer Money
+                        window.location.href = '../MoneyTransfer/moneytransfer.html';
+                        break;
+                }
+            }
+            // For the Investments button
+            else if (this.textContent.trim() === 'Investments') {
+                window.location.href = '../Investment/Investments.html';
+            }
+            // For the Debts button
+            else if (this.textContent.trim() === 'Debts') {
+                window.location.href = '../Debts/debts.html';
+            }
+        });
+    });
+});
+
+
+

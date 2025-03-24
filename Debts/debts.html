@@ -4,9 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Penny Pilot</title>
-    <link rel="stylesheet" href="Dashboard_style.css">
-    <link rel="stylesheet" href="Functionality.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper/swiper-bundle.min.css">
+    <link rel="stylesheet" href="../Dashboard/Dashboard_style.css">
+    <link rel="stylesheet" href="../Dashboard/Functionality.css">
+    <link rel="stylesheet" href="../Dashboard/https://cdn.jsdelivr.net/npm/swiper/swiper-bundle.min.css">
 </head>
 <body>
     <nav class="navbar">
@@ -20,24 +20,24 @@
     </nav>
     <div class="middle-body">
         <div class="left-buttons">
-            <button class="big-btn" id="add-entry-btn">Sell Stocks</button>
+            <button class="big-btn" id="add-entry-btn">Receive Debt</button>
             <div id="entry-modal" class="modal-overlay">
-                <div class="modal-content"> 
-                    <h2>Sell Stocks</h2>
-    
-                    <label for="entry-category">Select Stock</label>
-                    <select id="entry-category" aria-placeholder="">
-                        <option value="" disabled selected>Select an entry</option>
-                    </select>
-
-                    <label for="entry-amount">Rate</label>
-                    <input type="number" id="entry-amount" placeholder="Enter amount">
-
-                    <label for="entry-amount">Quantity</label>
-                    <input type="number" id="entry-amount" placeholder="Enter amount">
+                <div class="modal-content">
+                    <h2>Receive Debt</h2>
             
-                    <label for="entry-date">Selling Date:</label>
+                    <label for="entry-amount">Amount:</label>
+                    <input type="number" id="entry-amount" placeholder="Enter amount">
+                                        
+                    <label for="entry-interest">Interest Rate (%):</label>
+                    <input type="number" id="entry-interest" placeholder="Enter interest rate">
+            
+                    <label for="entry-date">Taken Date:</label>
                     <input type="date" id="entry-date">
+                    <label for="entry-date">Returning Date:</label>
+                    <input type="date" id="entry-date">
+
+                    <label for="entry-description">Description:</label>
+                    <textarea id="entry-description" placeholder="Enter details"></textarea>
             
                     <div class="modal-buttons">   
                         <button id="close-modal" class="modal-btn close-btn">Cancel</button>
@@ -45,22 +45,21 @@
                     </div>
                 </div>
             </div>            
-            <button class="big-btn" id="debit-entry-btn">Buy Stocks</button>
+            <button class="big-btn" id="debit-entry-btn">Give Debt</button>
             <div id="debit-modal" class="modal-overlay">
                 <div class="modal-content">
-                    <h2>Buy Stocks</h2>
+                    <h2>Give Debt</h2>
             
-                    <label for="stock-name">Name of share</label>
-                    <input type="text" id="stock-name" placeholder="Enter Stock Name">
+                    <label for="debit-amount">Amount:</label>
+                    <input type="number" id="debit-amount" placeholder="Enter amount">
                     
-                    <label for="debit-amount">Rate</label>
-                    <input type="number" id="debit-amount" placeholder="Enter amount">
-
-                    <label for="debit-amount">Quantity</label>
-                    <input type="number" id="debit-amount" placeholder="Enter amount">
+                    <label for="entry-interest">Interest Rate (%):</label>
+                    <input type="number" id="entry-interest" placeholder="Enter interest rate">
             
-                    <label for="debit-date">Buying Date:</label>
-                    <input type="date" id="debit-date">
+                    <label for="entry-date">Giving Date:</label>
+                    <input type="date" id="entry-date">
+                    <label for="entry-date">Receiving Date:</label>
+                    <input type="date" id="entry-date">
             
                     <label for="debit-description">Description:</label>
                     <textarea id="debit-description" placeholder="Enter details"></textarea>
@@ -76,18 +75,17 @@
             <div id="wallet-modal" class="modal-overlay">
                 <div class="modal-content">
                     <h2>Wallet</h2>
-                    <p><span id="wallet-balance">$0.00</span></p>
-                    <p>Invested Amount : $0.00</p>
-                    <p>Current Amount : $0.00</p>
+                    <p>Current Balance: <span id="wallet-balance">$0.00</span></p>
                     
                     <div class="modal-buttons">
-                        <button id="add-expense-btn" class="modal-btn close-btn">Buy Stocks</button>
-                        <button id="add-funds-btn" class="modal-btn save-btn">Sell Stocks</button>
+                        <button id="add-expense-btn" class="modal-btn close-btn">Give Debt</button>
+                        <button id="add-funds-btn" class="modal-btn save-btn">Receive Debt</button>
                         <button id="close-wallet-btn" class="modal-btn close-btn">Close</button>
                     </div>
                 </div>
             </div>
-            
+            <button class="big-btn" id="collect-debt-btn">Collect/Return Debt</button>
+
         </div>        
         <div class="swiper">
             <div class="swiper-wrapper">
@@ -130,6 +128,7 @@
         </div>
     </div>
 
+    <!-- Buttons at the Bottom of the Page -->
     <div class="bottom-buttons">
         <button class="nav-btn" data-index="0">Expenditure</button>
         <button class="nav-btn" >Debts</button>
@@ -138,8 +137,12 @@
     </div>
     
 
-    <script src="Functionality.js"></script>
+    <script src="../Dashboard/Functionality.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/swiper/swiper-bundle.min.js"></script>
-    <script src="Dashboard_script.js"></script>
+    <script src="../Dashboard/Dashboard_script.js"></script>
+    
+    <script src="../Dashboard/Dashboard_user(h).js"></script>
 </body>
 </html>
+
+
