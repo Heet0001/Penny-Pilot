@@ -1,0 +1,162 @@
+.modal-overlay {
+    display: none; /* Hidden by default */
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    justify-content: center;
+    align-items: center;
+    z-index: 1000; /* Above all elements */
+    opacity: 1;
+    transition: opacity 0.3s ease-in-out;
+}
+.modal-overlay.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* Modal Content - Centered Box */
+.modal-content {
+    background: white;
+    padding: 20px;
+    width: 350px;
+    border-radius: 8px;
+    text-align: center;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+.modal-content h2 {
+    color: black;
+}
+
+/* Form Fields */
+.modal-content label {
+    display: block;
+    margin-top: 10px;
+    font-size: small ;
+    text-align: left;
+    color: black;
+}
+
+.modal-content input,
+.modal-content select,
+.modal-content textarea {
+    width: 100%;
+    padding: 8px;
+    margin-top: 5px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+/* Textarea Specific */
+.modal-content textarea {
+    height: 70px;
+    resize: none;
+}
+
+/* Modal Buttons */
+.modal-buttons {
+    margin-top: 15px;
+    display: flex;
+    justify-content: space-between;
+}
+
+.modal-btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: 0.3s;
+}
+
+.save-btn {
+    background-color: green;
+    color: white;
+}
+
+.close-btn {
+    background-color: red;
+    color: white;
+}
+
+.modal-btn:hover {
+    opacity: 0.7;
+}
+
+.modal-overlay.hidden {
+    animation: fadeOut 0.3s ease-in-out;
+    pointer-events: none; 
+}
+/* Fade-in Animation */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+@keyframes fadeOut {
+    from {
+        opacity: 1;
+        transform: scale(1);
+    }
+    to {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+}
+#emergency-modal .modal-content {
+    width: 350px;
+    background: white;
+    padding: 25px;
+    border-radius: 12px;
+    text-align: center;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    animation: fadeIn 0.3s ease-in-out;
+    position: relative;
+}
+
+#emergency-modal h2 {
+    font-size: 24px;
+    color: #d9534f;
+    margin-bottom: 10px;
+}
+
+#emergency-balance {
+    font-size: 22px;
+    font-weight: bold;
+    color: red;
+    display: block;
+    margin-bottom: 20px;
+}
+#wallet-modal .modal-content {
+    width: 350px;
+    background: white;
+    padding: 25px;
+    border-radius: 12px;
+    text-align: center;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    animation: fadeIn 0.3s ease-in-out;
+    position: relative;
+}
+
+#wallet-modal h2 {
+    font-size: 24px;
+    color: #4054ab;
+    margin-bottom: 10px;
+}
+
+#wallet-balance {
+    font-size: 22px;
+    font-weight: bold;
+    color: green;
+    display: block;
+    margin-bottom: 20px;
+}
