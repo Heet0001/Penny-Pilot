@@ -37,10 +37,7 @@ CREATE TABLE wallet (
     FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
-<<<<<<< HEAD
 select * from wallet;
-=======
->>>>>>> recovered-branch
 CREATE TABLE emergency_fund (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
@@ -61,7 +58,6 @@ CREATE TABLE debit_entries (
     FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
-<<<<<<< HEAD
 select * from debit_entries;
 
 
@@ -114,6 +110,3 @@ ADD FOREIGN KEY (recipient_id) REFERENCES users(id);
 
 
 
-=======
-select * from debit_entries;
->>>>>>> recovered-branch
