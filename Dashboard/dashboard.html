@@ -4,216 +4,330 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Penny Pilot</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Righteous&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="Dashboard_style.css">
-    <link rel="stylesheet" href="Functionality.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper/swiper-bundle.min.css">
 </head>
 <body>
-    <nav class="navbar">
-        <div class="logo">Penny Pilot</div>
+    <!-- Glassmorphic Sidebar -->
+    <div class="sidebar">
+        <div class="sidebar-logo">
+            <div class="logo">
+                <div class="logo-icon">
+                    <i class="fas fa-coins"></i>
+                </div>
+                <div class="logo-text">Penny Pilot</div>
+            </div>
+        </div>
         
-        <div class="profile-container">
-            <img src="user.png" alt="Profile" id="profile-icon">
-            <span id="username-tooltip"></span> 
+        <div class="sidebar-menu">
+            <a href="#" class="menu-item active">
+                <i class="fas fa-wallet"></i>
+                <span>Expenditure</span>
+            </a>
+            <a href="../Debts/debts.html" class="menu-item">
+                <i class="fas fa-hand-holding-usd"></i>
+                <span>Debts</span>
+            </a>
+            <a href="../Investment/Investments.html" class="menu-item">
+                <i class="fas fa-chart-line"></i>
+                <span>Investments</span>
+            </a>
+            <a href="../MoneyTransfer/moneytransfer.html" class="menu-item">
+                <i class="fas fa-exchange-alt"></i>
+                <span>Money Transfer</span>
+            </a>
         </div>
-
-    </nav>
-    <div class="middle-body">
-        <div class="left-buttons">
-            <button class="big-btn" id="add-entry-btn">Credit Funds</button>
-            <div id="entry-modal" class="modal-overlay">
-                <div class="modal-content">
-                    <h2>Credit Funds</h2>
-            
-                    <label for="entry-amount">Amount:</label>
-                    <input type="number" id="entry-amount" placeholder="Enter amount">
-            
-                    <label for="entry-category">Category:</label>
-                    <select id="entry-category">
-                        <option value="Salary">Salary</option>
-                        <option value="debt taken">Debt Taken</option>
-                        <option value="investment relieved">Investments Relieved</option>
-                        <option value="from emergency">From Emergency Funds</option>
-                        <option value="other">Other</option>
-                    </select>
-            
-                    <label for="entry-date">Date:</label>
-                    <input type="date" id="entry-date">
-            
-                    <label for="entry-description">Description:</label>
-                    <textarea id="entry-description" placeholder="Enter details"></textarea>
-            
-                    <div class="modal-buttons">   
-                        <button id="close-modal" class="modal-btn close-btn">Cancel</button>
-                        <button id="save-entry" class="modal-btn save-btn">Save</button>
-                    </div>
+        
+        <button class="logout-btn" id="logout-btn">
+            <i class="fas fa-sign-out-alt"></i>
+            <span>Logout</span>
+        </button>
+    </div>
+    
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Static Content (Upper Page) -->
+        <div class="static-content">
+            <!-- Navbar -->
+            <div class="navbar">
+                <div></div> <!-- Empty spacer -->
+                <div class="user-profile">
+                    <div class="user-avatar" id="profile-icon"></div>
+                    <div class="user-tooltip" id="username-tooltip"></div>
                 </div>
-            </div>            
-            <button class="big-btn" id="debit-entry-btn">Debit Funds</button>
-            <div id="debit-modal" class="modal-overlay">
-                <div class="modal-content">
-                    <h2>Debit Funds</h2>
-            
-                    <label for="debit-amount">Amount:</label>
-                    <input type="number" id="debit-amount" placeholder="Enter amount">
-            
-                    <label for="debit-category">Category:</label>
-                    <select id="debit-category">
-                        <option value="food">Food</option>
-                        <option value="transport">Transport</option>
-                        <option value="entertainment">Entertainment</option>
-                        <option value="bills">Bills</option>
-                        <option value="emergency">Emergency</option>
-                        <option value="other">Other</option>
-                    </select>
-            
-                    <label for="debit-date">Date:</label>
-                    <input type="date" id="debit-date">
-            
-                    <label for="debit-description">Description:</label>
-                    <textarea id="debit-description" placeholder="Enter details"></textarea>
-            
-                    <div class="modal-buttons">
-                        <button id="close-debit-modal" class="modal-btn close-btn">Cancel</button>
-                        <button id="save-debit" class="modal-btn save-btn">Save</button>
-                    </div>
-                </div>           
             </div>
-               
-            <button class="big-btn" id="wallet-btn">Wallet</button>
-            <div id="wallet-modal" class="modal-overlay">
-                <div class="modal-content">
-                    <h2>Wallet</h2>
-                    <p>Current Balance: <span id="wallet-balance">$0.00</span></p>
+            
+            <!-- Balance Cards -->
+            <div class="balance-section">
+                <div class="balance-card wallet-card">
+                    <div class="balance-header">
+                        <i class="fas fa-wallet"></i>
+                        <span>Wallet Balance</span>
+                    </div>
+                    <div class="balance-amount" id="wallet-balance">$0.00</div>
+                </div>
+                
+                <div class="balance-card emergency-card">
+                    <div class="balance-header">
+                        <i class="fas fa-piggy-bank"></i>
+                        <span>Emergency Fund</span>
+                    </div>
+                    <div class="balance-amount" id="emergency-balance">$0.00</div>
+                </div>
+            </div>
+            
+            <!-- Charts Section -->
+            <div class="charts-section">
+                <div class="charts-container">
+                    <div class="export-actions">
+                        <button class="export-pdf-btn" id="export-pdf-btn">
+                            <i class="fas fa-file-pdf"></i>
+                            <span>Export PDF</span>
+                        </button>
+                    </div>
                     
-                    <div class="modal-buttons">
-                        <button id="add-expense-btn" class="modal-btn close-btn">Add Expense</button>
-                        <button id="add-funds-btn" class="modal-btn save-btn">Add Funds</button>
-                        <button id="close-wallet-btn" class="modal-btn close-btn">Close</button>
+                    <div class="swiper-container">
+                        <div class="swiper-wrapper">
+                            <div class="swiper-slide">
+                                <div class="chart-container">
+                                    <div class="chart-wrapper">
+                                        <canvas id="debitPieChart"></canvas>
+                                    </div>
+                                    <div class="chart-wrapper">
+                                        <canvas id="creditPieChart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="swiper-slide">
+                                <div class="chart-container">
+                                    <div class="chart-wrapper">
+                                        <canvas id="debitBarChart"></canvas>
+                                    </div>
+                                    <div class="chart-wrapper">
+                                        <canvas id="creditBarChart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="swiper-button-next"></div>
+                        <div class="swiper-button-prev"></div>
+                    </div>
+                </div>            
+            </div>
+            <div class="scroll-hint">
+                <i class="fas fa-chevron-down"></i>
+            </div>
+        </div>
+        
+        <!-- Sliding Section (Lower Page) -->
+        <div class="sliding-section">
+            <div class="transactions-section">
+                <div class="transactions-container">
+                    <div class="section-header">
+                        <div class="section-title">Recent Transactions</div>
+                        <div style="font-size: 14px; color: #7F8C8D;">Last 30 days</div>
+                    </div>
+                    
+                    <div class="transaction-list" id="transaction-list">
+                        <!-- Transactions will be loaded dynamically -->
                     </div>
                 </div>
             </div>
-            <button class="big-btn" id="emergency-btn">Emergency Fund</button>
-            <div id="emergency-modal" class="modal-overlay">
-                <div class="modal-content">
-                    <h2>Emergency Fund</h2>
-                    <p>Current Balance: <span id="emergency-balance">$0.00</span></p>
-                    <div class="modal-buttons">
-                        <button id="withdraw-emergency-btn" class="modal-btn close-btn">Withdraw</button>
-                        <button id="add-emergency-funds-btn" class="modal-btn save-btn">Add Funds</button>
-                        <button id="close-emergency-btn" class="modal-btn close-btn">Close</button>
+        </div>
+    </div>
+    
+    <!-- Add Button -->
+    <button class="add-button" id="addButton">
+        <i class="fas fa-plus" id="addIcon"></i>
+    </button>
+    
+    <!-- Add Options -->
+    <div class="add-options" id="addOptions">
+        <div class="add-option option-credit" id="add-credit-btn">
+            <i class="fas fa-plus-circle"></i>
+            <span>Credit Entry</span>
+        </div>
+        <div class="add-option option-debit" id="add-debit-btn">
+            <i class="fas fa-minus-circle"></i>
+            <span>Debit Entry</span>
+        </div>
+        <div class="add-option option-emergency" id="add-emergency-btn">
+            <i class="fas fa-piggy-bank"></i>
+            <span>Emergency Fund</span>
+        </div>
+    </div>
+    
+    <!-- All Modals (Credit, Debit, Emergency) -->
+     <!-- PDF Export Modal -->
+    <div id="pdf-export-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">Export Report</div>
+                <div class="close-btn" id="close-pdf-modal">&times;</div>
+            </div>
+            <div class="modal-body">
+                <form id="pdf-export-form">
+                    <div class="radio-group">
+                        <div class="radio-option">
+                            <input type="radio" id="full-report" name="reportType" value="full" checked>
+                            <label for="full-report">Full Report</label>
+                        </div>
+                        <div class="radio-option">
+                            <input type="radio" id="partial-report" name="reportType" value="partial">
+                            <label for="partial-report">Partial Report</label>
+                        </div>
                     </div>
-                </div>
-            </div>
-            
-            <!-- Add/Withdraw Fund Modal -->
-            <div id="fund-modal" class="modal-overlay hidden">
-                <div class="modal-content">
-                    <h2 id="fund-modal-title">Add Fund</h2>
-                    <label for="fund-amount">Amount:</label>
-                    <input type="number" id="fund-amount" placeholder="Enter amount">
-                    <label for="fund-date">Date:</label>
-                    <input type="date" id="fund-date">
-                    <div class="modal-buttons">
-                        <button id="cancel-fund-btn" class="modal-btn close-btn">Cancel</button>
-                        <button id="save-fund-btn" class="modal-btn save-btn">Save</button>
+                    
+                    <div class="partial-report-options" id="partial-report-options" style="display: none;">
+                        <div class="form-group">
+                            <label for="pdf-from-date">From Date</label>
+                            <input type="date" id="pdf-from-date" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label for="pdf-to-date">To Date</label>
+                            <input type="date" id="pdf-to-date" class="form-control">
+                        </div>
                     </div>
-                </div>
+                    
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-outline" id="cancel-pdf-export">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Generate PDF</button>
+                    </div>
+                </form>
             </div>
-            
-            
-        </div>        
-        <div class="swiper">
-            <div class="swiper-wrapper">
-                <div class="swiper-slide">
-                    <div class="date-picker-container">
-                        <label for="from-date">From Date:</label>
-                        <input type="date" id="from-date">
-                    
-                        <label for="to-date">To Date:</label>
-                        <input type="date" id="to-date">
-                    </div> 
-                    <button class="small-btn">Export PDF</button>                  
-                </div>
-                <div class="swiper-slide">
-                    <div class="date-picker-container">
-                        <label for="from-date">From Date:</label>
-                        <input type="date" id="from-date">
-                    
-                        <label for="to-date">To Date:</label>
-                        <input type="date" id="to-date">
-                    </div>    
-                    <button class="small-btn">Export PDF</button>   
-                </div>
-                <div class="swiper-slide">
-                    <div class="date-picker-container">
-                        <label for="from-date">From Date:</label>
-                        <input type="date" id="from-date">
-                    
-                        <label for="to-date">To Date:</label>
-                        <input type="date" id="to-date">
-                    </div>   
-                    <button class="small-btn">Export PDF</button>    
-                </div>
+        </div>
+    </div>
+    <!-- Credit Modal -->
+    <div id="entry-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">Credit Funds</div>
+                <div class="close-btn" id="close-modal">&times;</div>
             </div>
-            <!-- Navigation buttons -->
-            <div class="swiper-button-next"></div>
-            <div class="swiper-button-prev"></div>
-            <!-- Pagination -->
-            <div class="swiper-pagination"></div>
+            <div class="modal-body">
+                <form id="credit-form">
+                    <div class="form-group">
+                        <label for="entry-amount">Amount</label>
+                        <input type="number" id="entry-amount" class="form-control" placeholder="Enter amount" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="entry-category">Category</label>
+                        <select id="entry-category" class="form-control" required>
+                            <option value="Salary">Salary</option>
+                            <option value="Freelance Income">Freelance Income</option>
+                            <option value="Gifts">Gifts</option>
+                            <option value="Other">Other</option>
+                            <option value="From Emergency" hidden>From Emergency</option>
+                            <option value="Debt Taken" hidden>Debt Taken</option>
+                            <option value="From Investment" hidden>From Investment</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="entry-date">Date</label>
+                        <input type="date" id="entry-date" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="entry-description">Description (Optional)</label>
+                        <textarea id="entry-description" class="form-control" placeholder="Enter details"></textarea>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-outline" id="close-modal-btn">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Save</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Debit Modal -->
+    <div id="debit-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">Debit Funds</div>
+                <div class="close-btn" id="close-debit-modal">&times;</div>
+            </div>
+            <div class="modal-body">
+                <form id="debit-form">
+                    <div class="form-group">
+                        <label for="debit-amount">Amount</label>
+                        <input type="number" id="debit-amount" class="form-control" placeholder="Enter amount" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="debit-category">Category</label>
+                        <select id="debit-category" class="form-control" required>
+                            <option value="Food & Dining">Food & Dining</option>
+                            <option value="Transportation">Transportation</option>
+                            <option value="Bills">Bills</option>
+                            <option value="Shopping">Shopping</option>
+                            <option value="Entertainment">Entertainment</option>
+                            <option value="Health & Fitness">Health & Fitness</option>
+                            <option value="Education">Education</option>
+                            <option value="Other">Other</option>
+                            <option value="To Emergency" hidden>To Emergency</option>
+                            <option value="Debt Given" hidden>Debt Given</option>
+                            <option value="To Investment" hidden>To Investment</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="debit-date">Date</label>
+                        <input type="date" id="debit-date" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="debit-description">Description (Optional)</label>
+                        <textarea id="debit-description" class="form-control" placeholder="Enter details"></textarea>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-outline" id="close-debit-modal-btn">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Save</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Emergency Fund Modal -->
+    <div id="emergency-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">Emergency Fund</div>
+                <div class="close-btn" id="close-emergency-btn">&times;</div>
+            </div>
+            <div class="modal-body">
+                <div class="balance-display">
+                    <p>Current Balance: <span id="emergency-balance-modal">$0.00</span></p>
+                </div>
+                <form id="emergency-form">
+                    <div class="radio-group">
+                        <div class="radio-option">
+                            <input type="radio" id="addFund" name="fundAction" value="add" checked>
+                            <label for="addFund">Add to Fund</label>
+                        </div>
+                        <div class="radio-option">
+                            <input type="radio" id="withdrawFund" name="fundAction" value="withdraw">
+                            <label for="withdrawFund">Withdraw from Fund</label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="fund-amount">Amount</label>
+                        <input type="number" id="fund-amount" class="form-control" placeholder="Enter amount" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="fund-date">Date</label>
+                        <input type="date" id="fund-date" class="form-control" required>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-outline" id="cancel-fund-btn">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Confirm</button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
 
-    <!-- Buttons at the Bottom of the Page -->
-    <div class="bottom-buttons">
-        <button class="nav-btn" data-index="0">Expenditure</button>
-        <button class="nav-btn">Debts</button>
-        <button class="nav-btn">Investments</button>
-        <button class="nav-btn" data-index="3">Transfer Money</button>
-    </div>
-
-    <script src="Dashboard_user(h).js"></script>
-
-    <script src="Functionality.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/swiper/swiper-bundle.min.js"></script>
+    <script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
     <script src="Dashboard_script.js"></script>
 </body>
 </html>
-
-
-<!--
-Update Entries Ready Frontend
-
-<div class="modal-content">
-                    <h2>Debit Funds</h2>
-            
-                    <label for="update-entry-select">Select Entry:</label>
-                    <select id="update-entry-select">
-                        <option value="" disabled selected>Select an entry</option>
-                    </select>
-            
-                    <label for="update-amount">Amount:</label>
-                    <input type="number" id="update-amount" placeholder="Enter amount">
-            
-                    <label for="update-category">Category:</label>
-                    <select id="update-category">
-                        <option value="food">Food</option>
-                        <option value="transport">Transport</option>
-                        <option value="entertainment">Entertainment</option>
-                        <option value="bills">Bills</option>
-                        <option value="other">Other</option>
-                    </select>
-            
-                    <label for="update-date">Date:</label>
-                    <input type="date" id="update-date">
-            
-                    <label for="update-description">Description:</label>
-                    <textarea id="update-description" placeholder="Enter details"></textarea>
-            
-                    <div class="modal-buttons">
-                        <button id="close-update-modal" class="modal-btn close-btn">Cancel</button>
-                        <button id="save-update" class="modal-btn save-btn">Update</button>
-                    </div>
-                </div>
-            </div>
--->

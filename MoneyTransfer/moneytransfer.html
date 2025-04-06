@@ -3,133 +3,227 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Penny Pilot</title>
-    <link rel="stylesheet" href="../Dashboard/Dashboard_style.css">
-    <link rel="stylesheet" href="../Dashboard/Functionality.css">
-    <link rel="stylesheet" href="../Dashboard/https://cdn.jsdelivr.net/npm/swiper/swiper-bundle.min.css">
+    <title>Penny Pilot - Money Transfer</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Righteous&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="moneytransfer.css">
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const currentUser = localStorage.getItem('currentUser');
+            if (!currentUser) {
+                window.location.href = '../LoginPage/Login.html';
+            }
+            
+            // Update user info in navbar
+            const user = JSON.parse(currentUser);
+            document.querySelector('.user-avatar').textContent = 
+                user.name.split(' ').map(n => n[0]).join('').toUpperCase();
+            document.querySelector('.user-tooltip').textContent = user.name;
+        });
+    </script>
 </head>
 <body>
-    <nav class="navbar">
-        <div class="logo">Penny Pilot</div>
-        
-        <div class="profile-container">
-            <img src="user.png" alt="Profile" id="profile-icon">
-            <span id="username-tooltip"></span> 
+    <!-- Glassmorphic Sidebar -->
+    <div class="sidebar">
+        <div class="sidebar-logo">
+            <div class="logo">
+                <div class="logo-icon">
+                    <i class="fas fa-coins"></i>
+                </div>
+                <div class="logo-text">Penny Pilot</div>
+            </div>
         </div>
-
-    </nav>
-    <div class="middle-body">
-        <div class="left-buttons">
-            <button class="big-btn" id="add-entry-btn">Transfer Money as debt</button>
-            <div id="entry-modal" class="modal-overlay">
-                <div class="modal-content">
-                    <h2>Transfer Money</h2>
-
-                    <label for="username-debt">Username:</label>
-                    <input type="text" id="username-debt" placeholder="Enter Username">
+        
+        <div class="sidebar-menu">
+            <a href="../Dashboard/dashboard.html" class="menu-item">
+                <i class="fas fa-wallet"></i>
+                <span>Expenditure</span>
+            </a>
+            <a href="../Debts/debts.html" class="menu-item">
+                <i class="fas fa-hand-holding-usd"></i>
+                <span>Debts</span>
+            </a>
+            <a href="../Investment/Investments.html" class="menu-item">
+                <i class="fas fa-chart-line"></i>
+                <span>Investments</span>
+            </a>
+            <a href="#" class="menu-item active">
+                <i class="fas fa-exchange-alt"></i>
+                <span>Money Transfer</span>
+            </a>
+        </div>
+        
+        <div class="logout-container">
+            <button class="logout-btn" id="logout-btn">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Logout</span>
+            </button>
+        </div>
+    </div>
+    
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Static Content (Upper Page) -->
+        <div class="static-content">
+            <!-- Navbar -->
+            <div class="navbar">
+                <div></div> <!-- Empty spacer -->
+                <div class="user-profile">
+                    <div class="user-avatar">JD</div>
+                    <div class="user-tooltip">John Doe</div>
+                </div>
+            </div>
             
+            <!-- Balance Cards -->
+            <div class="balance-section">
+                <div class="balance-card wallet-card">
+                    <div class="balance-header">
+                        <i class="fas fa-wallet"></i>
+                        <span>Wallet Balance</span>
+                    </div>
+                    <div class="balance-amount" id="wallet-balance">$0.00</div>
+                </div>
+                
+                <div class="balance-card emergency-card">
+                    <div class="balance-header">
+                        <i class="fas fa-piggy-bank"></i>
+                        <span>Pending Transfers</span>
+                    </div>
+                    <div class="balance-amount" id="pending-count">0</div>
+                </div>
+            </div>
+            
+            <!-- Recent Transfers Section -->
+            <div class="transactions-section">
+                <div class="transactions-container">
+                    <div class="section-header">
+                        <div class="section-title">Recent Transfers</div>
+                        <div style="font-size: 14px; color: #7F8C8D;">Last 30 days</div>
+                    </div>
+                    
+                    <div class="transaction-list" id="recent-transfers">
+                        <!-- Will be populated by JavaScript -->
+                        <div class="empty-state">
+                            <i class="fas fa-exchange-alt"></i>
+                            <p>Your recent transfers will appear here</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    
+    <!-- Add Button -->
+    <button class="add-button" id="addButton">
+        <i class="fas fa-plus" id="addIcon"></i>
+    </button>
+    
+    <!-- Add Options -->
+    <div class="add-options" id="addOptions">
+        <div class="add-option option-debt" id="add-debt-btn">
+            <i class="fas fa-hand-holding-usd"></i>
+            <span>Transfer as Debt</span>
+        </div>
+        <div class="add-option option-expense" id="add-expense-btn">
+            <i class="fas fa-exchange-alt"></i>
+            <span>Transfer as Expense</span>
+        </div>
+    </div>
+    
+    <!-- Transfer Modal -->
+<!-- Transfer as Debt Modal -->
+<div id="entry-modal" class="modal-overlay">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Transfer as Debt</h2>
+            <span class="close-btn" onclick="hideModal('entry-modal')">&times;</span>
+        </div>
+        <div class="modal-body">
+            <form id="credit-form">
+                <div class="form-group">
+                    <label for="username-debt">Recipient Email:</label>
+                    <input type="email" id="username-debt" placeholder="Enter recipient email" required>
+                </div>
+                <div class="form-group">
                     <label for="entry-amount">Amount:</label>
-                    <input type="number" id="entry-amount" placeholder="Enter amount">
-            
+                    <input type="number" id="entry-amount" placeholder="Enter amount" required>
+                </div>
+                <div class="form-group">
                     <label for="entry-description">Description:</label>
                     <textarea id="entry-description" placeholder="Enter details"></textarea>
-            
-                    <div class="modal-buttons">   
-                        <button id="close-modal" class="modal-btn close-btn">Cancel</button>
-                        <button id="save-entry" class="modal-btn save-btn">Save</button>
-                    </div>
                 </div>
-            </div>            
-            <button class="big-btn" id="debit-entry-btn">Transfer money as Expense</button>
-            <div id="debit-modal" class="modal-overlay">
-                <div class="modal-content">
-                    <h2>Transfer money</h2>
-
-                    <label for="username-expense">Username:</label>
-                    <input type="text" id="username-expnese" placeholder="Enter Username">
-            
-                    <label for="debit-amount">Amount:</label>
-                    <input type="number" id="debit-amount" placeholder="Enter amount">
-            
-                    <label for="debit-description">Description:</label>
-                    <textarea id="debit-description" placeholder="Enter details"></textarea>
-            
-                    <div class="modal-buttons">
-                        <button id="close-debit-modal" class="modal-btn close-btn">Cancel</button>
-                        <button id="save-debit" class="modal-btn save-btn">Save</button>
-                    </div>
-                </div>           
-            </div>
-               
-            <button class="big-btn" id="wallet-btn">Wallet</button>
-            <div id="wallet-modal" class="modal-overlay">
-                <div class="modal-content">
-                    <h2>Wallet</h2>
-                    <p>Current Balance: <span id="wallet-balance">$0.00</span></p>
-                    
-                    <div class="modal-buttons">
-                        <button id="add-expense-btn" class="modal-btn close-btn">Expense</button>
-                        <button id="add-funds-btn" class="modal-btn save-btn">Debt</button>
-                        <button id="close-wallet-btn" class="modal-btn close-btn">Close</button>
-                    </div>
+                <div class="modal-buttons">
+                    <button type="button" class="modal-btn close-btn">Cancel</button>
+                    <button type="submit" class="modal-btn save-btn">Send Money</button>
                 </div>
-            </div>
-        </div>        
-        <div class="swiper">
-            <div class="swiper-wrapper">
-                <div class="swiper-slide">
-                    <div class="date-picker-container">
-                        <label for="from-date">From Date:</label>
-                        <input type="date" id="from-date">
-                    
-                        <label for="to-date">To Date:</label>
-                        <input type="date" id="to-date">
-                    </div> 
-                    <button class="small-btn">Export PDF</button>                  
-                </div>
-                <div class="swiper-slide">
-                    <div class="date-picker-container">
-                        <label for="from-date">From Date:</label>
-                        <input type="date" id="from-date">
-                    
-                        <label for="to-date">To Date:</label>
-                        <input type="date" id="to-date">
-                    </div>    
-                    <button class="small-btn">Export PDF</button>   
-                </div>
-                <div class="swiper-slide">
-                    <div class="date-picker-container">
-                        <label for="from-date">From Date:</label>
-                        <input type="date" id="from-date">
-                    
-                        <label for="to-date">To Date:</label>
-                        <input type="date" id="to-date">
-                    </div>   
-                    <button class="small-btn">Export PDF</button>    
-                </div>
-            </div>
-            <!-- Navigation buttons -->
-            <div class="swiper-button-next"></div>
-            <div class="swiper-button-prev"></div>
-            <!-- Pagination -->
-            <div class="swiper-pagination"></div>
+            </form>
         </div>
     </div>
+</div>
 
-    <!-- Buttons at the Bottom of the Page -->
-    <div class="bottom-buttons">
-        <button class="nav-btn" data-index="0">Expenditure</button>
-        <button class="nav-btn" >Debts</button>
-        <button class="nav-btn" >Investments</button>
-        <button class="nav-btn" data-index="3">Transfer Money</button>
+<!-- Transfer as Expense Modal -->
+<div id="debit-modal" class="modal-overlay">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Transfer as Expense</h2>
+            <span class="close-btn" onclick="hideModal('debit-modal')">&times;</span>
+        </div>
+        <div class="modal-body">
+            <form id="debit-form">
+                <div class="form-group">
+                    <label for="username-expense">Recipient Email:</label>
+                    <input type="email" id="username-expense" placeholder="Enter recipient email" required>
+                </div>
+                <div class="form-group">
+                    <label for="debit-amount">Amount:</label>
+                    <input type="number" id="debit-amount" placeholder="Enter amount" required>
+                </div>
+                <div class="form-group">
+                    <label for="debit-description">Description:</label>
+                    <textarea id="debit-description" placeholder="Enter details"></textarea>
+                </div>
+                <div class="modal-buttons">
+                    <button type="button" class="modal-btn close-btn">Cancel</button>
+                    <button type="submit" class="modal-btn save-btn">Send Money</button>
+                </div>
+            </form>
+        </div>
     </div>
-
-
+</div>
     
-    <script src="../Dashboard/Functionality.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/swiper/swiper-bundle.min.js"></script>
-    <script src="../Dashboard/Dashboard_script.js"></script>
+    <!-- Transfer History Modal -->
+    <div class="modal" id="historyModal">
+        <div class="modal-content" style="max-width: 800px;">
+            <div class="modal-header">
+                <div class="modal-title">Transfer History</div>
+                <div class="close-btn" onclick="closeModal()">&times;</div>
+            </div>
+            <div class="modal-body">
+                <div class="tabs">
+                    <button class="tab-btn active" data-tab="sent">Sent</button>
+                    <button class="tab-btn" data-tab="received">Received</button>
+                    <button class="tab-btn" data-tab="pending">Pending</button>
+                </div>
+                
+                <div class="tab-content" id="sent-transfers">
+                    <p>Loading sent transfers...</p>
+                </div>
+                
+                <div class="tab-content" id="received-transfers" style="display: none;">
+                    <p>Loading received transfers...</p>
+                </div>
+                
+                <div class="tab-content" id="pending-transfers" style="display: none;">
+                    <p>Loading pending transfers...</p>
+                </div>
+            </div>
+        </div>
+    </div>
     
-    <script src="../Dashboard/Dashboard_user(h).js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+    <script src="money_transfer.js"></script>
+    <script src="transfer-history.js"></script>
 </body>
 </html>

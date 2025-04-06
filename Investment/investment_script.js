@@ -1,14 +1,189 @@
 let priceRefreshInterval = null
 
+function displayUserProfile() {
+  const currentUser = JSON.parse(localStorage.getItem("currentUser"));
+  if (currentUser && currentUser.name) {
+      // Set first letter of username as avatar
+      const userAvatar = document.getElementById('user-avatar');
+      if (userAvatar) {
+          userAvatar.textContent = currentUser.name.charAt(0).toUpperCase();
+      }
+      
+      // Set username in tooltip
+      const userTooltip = document.getElementById('user-tooltip');
+      if (userTooltip) {
+          userTooltip.textContent = currentUser.name;
+      }
+  }
+}
+
+        // Initialize Swiper
+        const swiper = new Swiper('.swiper-container', {
+          loop: true,
+          navigation: {
+              nextEl: '.swiper-button-next',
+              prevEl: '.swiper-button-prev',
+          },
+      });
+
+      // Add Button Functionality
+      const addButton = document.getElementById('addButton');
+      const addOptions = document.getElementById('addOptions');
+      
+      
+      // Toggle add options menu
+      addButton.addEventListener('click', function(e) {
+          e.stopPropagation();
+          e.preventDefault();
+          
+          // Toggle display and active state
+          const isShowing = addOptions.style.display === 'flex';
+          addOptions.style.display = isShowing ? 'none' : 'flex';
+          addButton.classList.toggle('active', !isShowing);
+      });
+      
+      // Close options when clicking outside
+      document.addEventListener('click', function(e) {
+          if (!addButton.contains(e.target) && !addOptions.contains(e.target)) {
+              addOptions.style.display = 'none';
+              addButton.classList.remove('active');
+          }
+      });
+
+      // Stacked Scroll Effect
+      const slidingSection = document.querySelector('.sliding-section');
+      const mainContent = document.querySelector('.main-content');
+      const scrollHint = document.querySelector('.scroll-hint');
+      
+      if (slidingSection && mainContent) {
+          let isAnimating = false;
+          let lastScrollPosition = 0;
+          let isAtTop = true;
+
+          // Initialize position
+          slidingSection.style.transform = 'translateY(100%)';
+          slidingSection.style.transition = 'transform 0.4s cubic-bezier(0.28, 0.11, 0.32, 1)';
+
+          // Set initial scroll position
+          mainContent.scrollTop = 0;
+
+          mainContent.addEventListener('scroll', function() {
+              if (isAnimating) return;
+
+              const currentScroll = mainContent.scrollTop;
+              const scrollHeight = mainContent.scrollHeight;
+              const clientHeight = mainContent.clientHeight;
+              const maxScroll = scrollHeight - clientHeight;
+
+              // Hide/show scroll hint
+              if (currentScroll > 10) {
+                  scrollHint.style.opacity = '0';
+                  scrollHint.style.visibility = 'hidden';
+              } else {
+                  scrollHint.style.opacity = '1';
+                  scrollHint.style.visibility = 'visible';
+              }
+
+              // Determine if we're at the top
+              isAtTop = currentScroll <= 10;
+
+              // Only animate when scrolling up near the top
+              if (currentScroll < 100 && currentScroll < lastScrollPosition) {
+                  const progress = 1 - (currentScroll / 100);
+                  slidingSection.style.transform = `translateY(${100 - (progress * 100)}%)`;
+              } else if (currentScroll >= 100 || currentScroll > lastScrollPosition) {
+                  slidingSection.style.transform = 'translateY(0)';
+              }
+
+              // If user scrolls to bottom, ensure sliding section is fully visible
+              if (currentScroll >= maxScroll - 10) {
+                  slidingSection.style.transform = 'translateY(0)';
+              }
+
+              lastScrollPosition = currentScroll;
+          });
+
+          
+
+          // Improved scroll hint click behavior
+          scrollHint?.addEventListener('click', function() {
+              isAnimating = true;
+              slidingSection.style.transform = 'translateY(0)';
+              
+              const targetScroll = mainContent.scrollHeight - mainContent.clientHeight;
+              
+              mainContent.scrollTo({
+                  top: targetScroll,
+                  behavior: 'smooth'
+              });
+
+              setTimeout(() => {
+                  isAnimating = false;
+              }, 1000);
+          });
+
+          // Add keyboard scroll support
+          document.addEventListener('keydown', function(e) {
+              if (e.key === 'ArrowDown' && isAtTop) {
+                  mainContent.scrollTo({
+                      top: mainContent.scrollHeight - mainContent.clientHeight,
+                      behavior: 'smooth'
+                  });
+              }
+          });
+      }
+
+      // Connect the new UI elements to the existing functionality
+      document.getElementById('buy-stock-option').addEventListener('click', function() {
+          document.getElementById('debit-modal').style.display = 'flex';
+          addOptions.style.display = 'none';
+          addButton.classList.remove('active');
+      });
+
+      document.getElementById('sell-stock-option').addEventListener('click', function() {
+          document.getElementById('entry-modal').style.display = 'flex';
+          addOptions.style.display = 'none';
+          addButton.classList.remove('active');
+      });
+
+      // Set today's date as default
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementById('debit-date') && (document.getElementById('debit-date').value = today);
+      document.getElementById('entry-date') && (document.getElementById('entry-date').value = today);
+      document.getElementById('start-date') && (document.getElementById('start-date').value = today);
+      document.getElementById('end-date') && (document.getElementById('end-date').value = today);
+
 // Modify your initializePage function to include auto-refresh
 function initializePage() {
+  displayUserProfile();
   loadInvestments()
+  fetchWalletBalance(); 
   displayWalletBalance()
   setupStockNameInput()
   setupQuantityInput()
 
   // Refresh prices every 5 minutes (300000 ms)
   priceRefreshInterval = setInterval(loadInvestments, 300000)
+}
+
+function fetchWalletBalance() {
+  const currentUser = JSON.parse(localStorage.getItem("currentUser"));
+  if (!currentUser || !currentUser.id) return;
+
+  fetch(`http://localhost:3000/get-wallet-balance/${currentUser.id}`)
+    .then(response => {
+      if (!response.ok) throw new Error('Network response was not ok');
+      return response.json();
+    })
+    .then(data => {
+      localStorage.setItem(`wallet_balance_${currentUser.id}`, data.balance.toFixed(2));
+      displayWalletBalance();
+    })
+    .catch(error => {
+      console.error('Error fetching wallet balance:', error);
+      // Fallback to localStorage if available
+      displayWalletBalance();
+    });
 }
 
 // Add this to clean up when the page is unloaded
@@ -25,12 +200,15 @@ document.addEventListener("DOMContentLoaded", () => {
   const sellStockBtn = document.getElementById("add-entry-btn")
   const closeSellModalBtn = document.getElementById("close-modal")
   const saveSellBtn = document.getElementById("save-entry")
+  const cancelBuyBtn = document.getElementById("cancel-debit")
 
   // Buy Stock Modal Elements
   const buyStockModal = document.getElementById("debit-modal")
   const buyStockBtn = document.getElementById("debit-entry-btn")
   const closeBuyModalBtn = document.getElementById("close-debit-modal")
   const saveBuyBtn = document.getElementById("save-debit")
+  const cancelSellBtn = document.getElementById("cancel-entry")
+
 
   // Wallet Modal Elements
   const walletModal = document.getElementById("wallet-modal")
@@ -42,8 +220,20 @@ document.addEventListener("DOMContentLoaded", () => {
   // Get current user from localStorage
   const currentUser = JSON.parse(localStorage.getItem("currentUser"))
 
+  const exportPdfBtn = document.getElementById("export-pdf-btn");
+  const pdfExportModal = document.getElementById("pdf-export-modal");
+  const pdfExportForm = document.getElementById("pdf-export-form");
+  const partialReportOptions = document.getElementById("partial-report-options");
+  const fullReportRadio = document.getElementById("full-report");
+  const partialReportRadio = document.getElementById("partial-report");
+  const pdfFromDate = document.getElementById("pdf-from-date");
+  const pdfToDate = document.getElementById("pdf-to-date");
+  const closePdfModal = document.getElementById("close-pdf-modal");
+  const cancelPdfExport = document.getElementById("cancel-pdf-export");
+
   // Initialize page
   initializePage()
+  displayUserProfile();
 
   // --- UTILITY FUNCTIONS ---
 
@@ -54,6 +244,85 @@ document.addEventListener("DOMContentLoaded", () => {
       modal.classList.remove("hidden")
     }
   }
+
+  // Close Buy Stock Modal with Cancel button
+if (cancelBuyBtn) {
+  cancelBuyBtn.addEventListener("click", () => {
+    hideModal(buyStockModal)
+  })
+}
+
+// Close Sell Stock Modal with Cancel button
+if (cancelSellBtn) {
+  cancelSellBtn.addEventListener("click", () => {
+    hideModal(sellStockModal)
+  })
+}
+
+  if (exportPdfBtn) {
+    exportPdfBtn.addEventListener('click', () => {
+        showModal(pdfExportModal);
+        
+        // Set default dates (last 30 days)
+        const today = new Date();
+        const thirtyDaysAgo = new Date();
+        thirtyDaysAgo.setDate(today.getDate() - 30);
+        
+        pdfFromDate.value = thirtyDaysAgo.toISOString().split('T')[0];
+        pdfToDate.value = today.toISOString().split('T')[0];
+    });
+}
+
+if (fullReportRadio && partialReportRadio) {
+    fullReportRadio.addEventListener('change', () => {
+        partialReportOptions.style.display = 'none';
+    });
+    
+    partialReportRadio.addEventListener('change', () => {
+        partialReportOptions.style.display = 'block';
+    });
+}
+
+if (closePdfModal) {
+    closePdfModal.addEventListener('click', () => {
+        hideModal(pdfExportModal);
+    });
+}
+
+if (cancelPdfExport) {
+    cancelPdfExport.addEventListener('click', () => {
+        hideModal(pdfExportModal);
+    });
+}
+
+if (pdfExportForm) {
+    pdfExportForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        
+        const reportType = document.querySelector('input[name="reportType"]:checked').value;
+        let fromDate, toDate;
+        
+        if (reportType === 'partial') {
+            fromDate = pdfFromDate.value;
+            toDate = pdfToDate.value;
+            
+            if (!fromDate || !toDate) {
+                alert('Please select both start and end dates for partial report');
+                return;
+            }
+            
+            if (new Date(fromDate) > new Date(toDate)) {
+                alert('End date must be after start date');
+                return;
+            }
+        }
+        
+        // Here you would implement the actual PDF generation
+        //generatePdfReport(reportType, fromDate, toDate);
+        
+        hideModal(pdfExportModal);
+    });
+}
 
   // Hide modal with animation
   function hideModal(modal) {
@@ -111,154 +380,118 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // Load user's investments
   function loadInvestments() {
+    const currentUser = JSON.parse(localStorage.getItem("currentUser"));
     if (!currentUser || !currentUser.id) {
-      console.error("User not logged in")
-      return
+        console.error("User not logged in");
+        return;
     }
-
+  
     fetch(`http://localhost:3000/get-investments/${currentUser.id}`)
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error("Network response was not ok")
-        }
-        return response.json()
-      })
-      .then((data) => {
-        // Filter to only show active investments in the table
-        const activeInvestments = data.investments.filter((inv) => inv.status === "active")
-        displayInvestments(activeInvestments)
-        updateInvestmentSummary(data.summary)
-        populateSellStockDropdown(activeInvestments)
-      })
-      .catch((error) => {
-        console.error("Error loading investments:", error)
-      })
-  }
+        .then((response) => {
+            if (!response.ok) {
+                throw new Error("Network response was not ok");
+            }
+            return response.json();
+        })
+        .then((data) => {
+            const activeInvestments = data.investments.filter((inv) => inv.status === "active");
+            displayInvestments(activeInvestments);
+            updateInvestmentSummary(data.summary);
+            populateSellStockDropdown(activeInvestments);
+            
+            // Also load wallet balance
+            return fetch(`http://localhost:3000/get-wallet-balance/${currentUser.id}`);
+        })
+        .then(response => {
+            if (!response.ok) throw new Error('Network response was not ok');
+            return response.json();
+        })
+        .then(data => {
+            localStorage.setItem(`wallet_balance_${currentUser.id}`, data.balance.toFixed(2));
+            displayWalletBalance();
+        })
+        .catch((error) => {
+            console.error("Error loading investments:", error);
+        });
+}
 
   // Display investments in a table
-  function displayInvestments(investments) {
-    // Create investment table if it doesn't exist
-    let tableContainer = document.querySelector(".investment-table-container")
-
-    if (!tableContainer) {
-      tableContainer = document.createElement("div")
-      tableContainer.className = "investment-table-container"
-      tableContainer.style.margin = "20px"
-      tableContainer.style.padding = "20px"
-      tableContainer.style.backgroundColor = "#fff"
-      tableContainer.style.borderRadius = "8px"
-      tableContainer.style.boxShadow = "0 2px 10px rgba(0, 0, 0, 0.1)"
-
-      // Insert after swiper
-      const swiper = document.querySelector(".swiper")
-      swiper.parentNode.insertBefore(tableContainer, swiper.nextSibling)
-    }
-
-    // Clear existing content
-    tableContainer.innerHTML = "<h2>Your Active Investments</h2>"
-
-    if (!investments || investments.length === 0) {
-      tableContainer.innerHTML += '<p>No active investments found. Start investing by clicking "Buy Stocks".</p>'
-      return
-    }
-
-    // Create table
-    const table = document.createElement("table")
-    table.style.width = "100%"
-    table.style.borderCollapse = "collapse"
-    table.style.marginTop = "10px"
-
-    // Create table header
-    const thead = document.createElement("thead")
-    thead.innerHTML = `
-      <tr>
-        <th style="padding: 10px;COLOR: black;text-align: left;border-bottom: 1px solid #ddd;">Stock</th>
-        <th style="padding: 10px;COLOR: black; text-align: left; border-bottom: 1px solid #ddd;">Buy Price</th>
-        <th style="padding: 10px;COLOR: black;text-align: left; border-bottom: 1px solid #ddd;">Current Price</th>
-        <th style="padding: 10px; COLOR: black;text-align: left; border-bottom: 1px solid #ddd;">Quantity</th>
-        <th style="padding: 10px;COLOR: black; text-align: left; border-bottom: 1px solid #ddd;">Buy Date</th>
-        <th style="padding: 10px; COLOR: black;text-align: left; border-bottom: 1px solid #ddd;">Profit/Loss</th>
-      </tr>
-    `
-    table.appendChild(thead)
-
-    // Create table body
-    const tbody = document.createElement("tbody")
-
-    investments.forEach((investment) => {
-      const tr = document.createElement("tr")
-
+// Modify the displayInvestments function to use the new transaction list style
+function displayInvestments(investments) {
+  const investmentsList = document.getElementById('investments-list');
+  
+  if (!investmentsList) return;
+  
+  // Clear existing content
+  investmentsList.innerHTML = '';
+  
+  if (!investments || investments.length === 0) {
+      investmentsList.innerHTML = `
+          <div class="no-investments" style="text-align: center; padding: 20px; color: #7F8C8D;">
+              No active investments found. Start investing by clicking "Buy Stocks".
+          </div>
+      `;
+      return;
+  }
+  
+  investments.forEach((investment) => {
       // Format date
-      const buyDate = new Date(investment.buy_date).toLocaleDateString()
+      const buyDate = new Date(investment.buy_date).toLocaleDateString();
+      
+      // Calculate profit/loss
+      const profitLoss = Number.parseFloat(investment.profit_loss);
+      const profitLossColor = profitLoss >= 0 ? "#00B894" : "#D63031";
+      const profitLossIcon = profitLoss >= 0 ? "fa-arrow-up" : "fa-arrow-down";
+      
+      // Create transaction item
+      const transactionItem = document.createElement('div');
+      transactionItem.className = 'transaction-item';
+      transactionItem.innerHTML = `
+          <div class="transaction-icon" style="background: ${profitLoss >= 0 ? '#00B894' : '#D63031'}">
+              <i class="fas ${profitLossIcon}"></i>
+          </div>
+          <div class="transaction-details">
+              <div class="transaction-title">${investment.stock_name}</div>
+              <div class="transaction-category">${Number(investment.quantity)} shares • Bought on ${buyDate}</div>
+          </div>
+          <div class="transaction-amount" style="color: ${profitLossColor}">
+              $${profitLoss.toFixed(2)} (${investment.profit_loss_percentage}%)
+          </div>
+      `;
+      
+      investmentsList.appendChild(transactionItem);
+  });
+}
 
-      // Calculate profit/loss color
-      const profitLossColor = Number.parseFloat(investment.profit_loss) >= 0 ? "green" : "red"
-
-      // Create row content - display quantity as whole number
-      tr.innerHTML = `
-      <td style="padding: 10px; COLOR: black; border-bottom: 1px solid #ddd;">${investment.stock_name}</td>
-      <td style="padding: 10px;COLOR: black; border-bottom: 1px solid #ddd;">$${Number.parseFloat(investment.buy_price).toFixed(2)}</td>
-      <td style="padding: 10px;COLOR: black;COLOR: black; border-bottom: 1px solid #ddd;">$${Number.parseFloat(investment.current_price || investment.buy_price).toFixed(2)}</td>
-      <td style="padding: 10px; COLOR: black;border-bottom: 1px solid #ddd;">${Number(investment.quantity)}</td>
-      <td style="padding: 10px; COLOR: black;border-bottom: 1px solid #ddd;">${buyDate}</td>
-      <td style="padding: 10px;COLOR: black; border-bottom: 1px solid #ddd; color: ${profitLossColor};">
-        $${Number.parseFloat(investment.profit_loss).toFixed(2)} (${investment.profit_loss_percentage}%)
-      </td>
-    `
-
-      tbody.appendChild(tr)
-    })
-
-    table.appendChild(tbody)
-    tableContainer.appendChild(table)
+// Update investment summary to use the new balance cards
+function updateInvestmentSummary(summary) {
+  if (!summary) return;
+  
+  const totalInvestedElement = document.getElementById('total-invested');
+  const currentValueElement = document.getElementById('current-value');
+  const profitLossElement = document.getElementById('profit-loss');
+  
+  if (totalInvestedElement) {
+      totalInvestedElement.textContent = `$${Number.parseFloat(summary.total_invested).toFixed(2)}`;
   }
-
-  // Update investment summary
-  function updateInvestmentSummary(summary) {
-    if (!summary) return
-
-    let summaryContainer = document.querySelector(".investment-summary")
-
-    if (!summaryContainer) {
-      summaryContainer = document.createElement("div")
-      summaryContainer.className = "investment-summary"
-      summaryContainer.style.margin = "20px"
-      summaryContainer.style.padding = "20px"
-      summaryContainer.style.backgroundColor = "#fff"
-      summaryContainer.style.borderRadius = "8px"
-      summaryContainer.style.boxShadow = "0 2px 10px rgba(0, 0, 0, 0.1)"
-
-      // Insert after investment table
-      const tableContainer = document.querySelector(".investment-table-container")
-      if (tableContainer) {
-        tableContainer.parentNode.insertBefore(summaryContainer, tableContainer.nextSibling)
-      } else {
-        // If table doesn't exist yet, insert after swiper
-        const swiper = document.querySelector(".swiper")
-        swiper.parentNode.insertBefore(summaryContainer, swiper.nextSibling)
-      }
-    }
-
-    // Calculate profit/loss color
-    const profitLossColor = Number.parseFloat(summary.total_profit_loss) >= 0 ? "green" : "red"
-
-    // Update summary content
-    summaryContainer.innerHTML = `
-      <h2>Investment Summary</h2>
-      <div style="display: flex; justify-content: space-between; margin-top: 10px;">
-        <div>
-          <p><strong>Total Invested:</strong> $${Number.parseFloat(summary.total_invested).toFixed(2)}</p>
-          <p><strong>Current Value:</strong> $${Number.parseFloat(summary.total_current_value).toFixed(2)}</p>
-        </div>
-        <div>
-          <p><strong>Total Profit/Loss:</strong> <span style="color: ${profitLossColor};">$${Number.parseFloat(summary.total_profit_loss).toFixed(2)}</span></p>
-          <p><strong>Percentage:</strong> <span style="color: ${profitLossColor};">${summary.total_profit_loss_percentage}%</span></p>
-        </div>
-      </div>
-    `
+  
+  if (currentValueElement) {
+      currentValueElement.textContent = `$${Number.parseFloat(summary.total_current_value).toFixed(2)}`;
   }
+  
+  if (profitLossElement) {
+      const profitLoss = Number.parseFloat(summary.total_profit_loss);
+      const profitLossPercentage = Number.parseFloat(summary.total_profit_loss_percentage);
+      const sign = profitLoss >= 0 ? '+' : '';
+      
+      profitLossElement.textContent = `${sign}$${profitLoss.toFixed(2)} (${sign}${profitLossPercentage}%)`;
+      profitLossElement.style.color = profitLoss >= 0 ? '#00B894' : '#D63031';
+  }
+}
+
+// Keep all other functions from your original investment_script.js
+// They should work with the new modals since we kept the same IDs
 
   // Populate sell stock dropdown with active investments
   function populateSellStockDropdown(investments) {
@@ -430,117 +663,93 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Handle sell stock form submission
   if (saveSellBtn) {
-    saveSellBtn.addEventListener("click", () => {
-      const investmentSelect = document.getElementById("entry-category")
-      const rateInput = document.getElementById("entry-amount")
-      const quantityInput = document.getElementById("entry-quantity")
-      const dateInput = document.getElementById("entry-date")
-
-      // Validation checks
-      if (!investmentSelect || investmentSelect.selectedIndex <= 0) {
-        alert("Please select a stock to sell")
-        return
+    saveSellBtn.addEventListener("click", async () => {
+      try {
+        const investmentSelect = document.getElementById("entry-category");
+        const rateInput = document.getElementById("entry-amount");
+        const quantityInput = document.getElementById("entry-quantity");
+        const dateInput = document.getElementById("entry-date");
+  
+        // Validation checks
+        if (!investmentSelect || investmentSelect.selectedIndex <= 0) {
+          throw new Error("Please select a stock to sell");
+        }
+  
+        if (!rateInput || !rateInput.value || isNaN(rateInput.value)) {
+          throw new Error("Please enter a valid selling price");
+        }
+  
+        if (!quantityInput || !quantityInput.value || isNaN(quantityInput.value)) {
+          throw new Error("Please enter a valid quantity");
+        }
+  
+        if (!dateInput || !dateInput.value) {
+          throw new Error("Please select a selling date");
+        }
+  
+        const investmentId = investmentSelect.value;
+        const sellPrice = Number.parseFloat(rateInput.value);
+        const sellQuantity = Number(quantityInput.value);
+        const sellDate = dateInput.value;
+  
+        // Get max quantity
+        const selectedOption = investmentSelect.options[investmentSelect.selectedIndex];
+        const maxQuantity = Number(selectedOption.dataset.quantity);
+  
+        if (sellQuantity <= 0 || sellQuantity > maxQuantity) {
+          throw new Error(`Quantity must be between 1 and ${maxQuantity}`);
+        }
+  
+        if (!currentUser || !currentUser.id) {
+          throw new Error("User not logged in");
+        }
+  
+        const isPartialSale = sellQuantity < maxQuantity;
+        const totalSaleAmount = sellPrice * sellQuantity;
+  
+        const sellData = {
+          user_id: currentUser.id,
+          investment_id: investmentId,
+          sell_price: sellPrice,
+          sell_quantity: sellQuantity,
+          sell_date: sellDate,
+          partial_sale: isPartialSale,
+          total_sale_amount: totalSaleAmount
+        };
+  
+        const response = await fetch("http://localhost:3000/sell-stock", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(sellData),
+        });
+  
+        const data = await response.json();
+  
+        if (!response.ok) {
+          throw new Error(data.message || "Failed to sell stock");
+        }
+  
+        // Update UI
+        alert(`Sold successfully! Amount: $${data.total_sale_amount.toFixed(2)}`);
+        
+        // Reset form
+        investmentSelect.selectedIndex = 0;
+        rateInput.value = "";
+        quantityInput.value = "";
+        quantityInput.disabled = true;
+        dateInput.value = "";
+  
+        hideModal(sellStockModal);
+        loadInvestments();
+        displayWalletBalance();
+  
+      } catch (error) {
+        console.error("Sell error:", error);
+        alert(`Error: ${error.message}`);
       }
-
-      if (!rateInput || !rateInput.value) {
-        alert("Please enter a selling rate")
-        return
-      }
-
-      if (!quantityInput || !quantityInput.value) {
-        alert("Please enter a quantity to sell")
-        return
-      }
-
-      if (!dateInput || !dateInput.value) {
-        alert("Please select a selling date")
-        return
-      }
-
-      const investmentId = investmentSelect.value
-      const sellPrice = Number.parseFloat(rateInput.value)
-      const sellQuantity = Number(quantityInput.value)
-      const sellDate = dateInput.value
-
-      // Validate quantity
-      if (isNaN(sellQuantity) || sellQuantity <= 0) {
-        alert("Please enter a valid quantity greater than zero")
-        return
-      }
-
-      // Get the maximum available quantity
-      const selectedOption = investmentSelect.options[investmentSelect.selectedIndex]
-      const maxQuantity = Number(selectedOption.dataset.quantity)
-
-      if (sellQuantity > maxQuantity) {
-        alert(`You can only sell up to ${maxQuantity} units`)
-        return
-      }
-
-      // Determine if this is a partial sale
-      const isPartialSale = sellQuantity < maxQuantity
-
-      // Get current user
-      if (!currentUser || !currentUser.id) {
-        alert("User not logged in. Please log in again.")
-        return
-      }
-
-      // Prepare data for submission
-      const sellData = {
-        user_id: currentUser.id,
-        investment_id: investmentId,
-        sell_price: sellPrice,
-        sell_quantity: sellQuantity,
-        sell_date: sellDate,
-        partial_sale: isPartialSale,
-      }
-
-      console.log("Sending sell data:", sellData)
-
-      // Send data to server
-      fetch("http://localhost:3000/sell-stock", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(sellData),
-      })
-        .then((response) => {
-          if (!response.ok) {
-            return response.json().then((data) => {
-              throw new Error(data.message || "Network response was not ok")
-            })
-          }
-          return response.json()
-        })
-        .then((data) => {
-          console.log("Stock sold successfully:", data)
-          alert(
-            `Stock sold successfully! Total amount: $${data.total_sale_amount.toFixed(2)}, Profit/Loss: $${data.profit.toFixed(2)}`,
-          )
-
-          // Reset form
-          investmentSelect.selectedIndex = 0
-          rateInput.value = ""
-          if (quantityInput) {
-            quantityInput.value = ""
-            quantityInput.disabled = true
-          }
-          dateInput.value = ""
-
-          // Hide modal
-          hideModal(sellStockModal)
-
-          // Reload investments
-          loadInvestments()
-          displayWalletBalance()
-        })
-        .catch((error) => {
-          console.error("Error selling stock:", error)
-          alert("Failed to sell stock: " + error.message)
-        })
-    })
+    });
   }
 
   // Open Buy Stock Modal
@@ -558,106 +767,112 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // Handle buy stock form submission
-  if (saveBuyBtn) {
-    saveBuyBtn.addEventListener("click", () => {
-      const stockNameInput = document.getElementById("stock-name")
-      const rateInput = document.getElementById("debit-amount")
-      const quantityInput = document.getElementById("debit-quantity")
-      const dateInput = document.getElementById("debit-date")
-      const descriptionInput = document.getElementById("debit-description")
+// In investment_script.js, modify the buy stock form submission handler
+if (saveBuyBtn) {
+  saveBuyBtn.addEventListener("click", () => {
+    const stockNameInput = document.getElementById("stock-name");
+    const rateInput = document.getElementById("debit-amount");
+    const quantityInput = document.getElementById("debit-quantity");
+    const dateInput = document.getElementById("debit-date");
+    const descriptionInput = document.getElementById("debit-description");
 
-      if (!stockNameInput || !stockNameInput.value) {
-        alert("Please enter a stock name")
-        return
-      }
+    if (!stockNameInput || !stockNameInput.value) {
+      alert("Please enter a stock name");
+      return;
+    }
 
-      if (!rateInput || !rateInput.value) {
-        alert("Please enter a buying rate")
-        return
-      }
+    if (!rateInput || !rateInput.value) {
+      alert("Please enter a buying rate");
+      return;
+    }
 
-      if (!quantityInput || !quantityInput.value) {
-        alert("Please enter a quantity")
-        return
-      }
+    if (!quantityInput || !quantityInput.value) {
+      alert("Please enter a quantity");
+      return;
+    }
 
-      if (!dateInput || !dateInput.value) {
-        alert("Please select a buying date")
-        return
-      }
+    if (!dateInput || !dateInput.value) {
+      alert("Please select a buying date");
+      return;
+    }
 
-      // Get current user
-      if (!currentUser || !currentUser.id) {
-        alert("User not logged in. Please log in again.")
-        return
-      }
+    // Get current user
+    const currentUser = JSON.parse(localStorage.getItem("currentUser"));
+    if (!currentUser || !currentUser.id) {
+      alert("User not logged in. Please log in again.");
+      return;
+    }
 
-      // Validate quantity is a whole number
-      const quantity = Number(quantityInput.value)
-      if (isNaN(quantity) || quantity <= 0 || !Number.isInteger(quantity)) {
-        alert("Please enter a valid whole number quantity")
-        return
-      }
+    // Validate quantity is a whole number
+    const quantity = Number(quantityInput.value);
+    if (isNaN(quantity) || quantity <= 0 || !Number.isInteger(quantity)) {
+      alert("Please enter a valid whole number quantity");
+      return;
+    }
 
-      const rate = Number.parseFloat(rateInput.value)
-      const totalCost = rate * quantity
+    const rate = Number.parseFloat(rateInput.value);
+    const totalCost = rate * quantity;
 
-      // Check if user has enough balance
-      if (totalCost > getWalletBalance()) {
-        alert("Insufficient wallet balance")
-        return
-      }
+    // Prepare data for submission
+    const buyData = {
+      user_id: currentUser.id,
+      stock_name: stockNameInput.value,
+      buy_price: rate,
+      quantity: quantity,
+      buy_date: dateInput.value,
+      description: descriptionInput ? descriptionInput.value : "",
+    };
 
-      // Prepare data for submission
-      const buyData = {
-        user_id: currentUser.id,
-        stock_name: stockNameInput.value,
-        buy_price: rate,
-        quantity: quantity,
-        buy_date: dateInput.value,
-        description: descriptionInput ? descriptionInput.value : "",
-      }
-
-      // Send data to server
-      fetch("http://localhost:3000/buy-stock", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(buyData),
-      })
-        .then((response) => {
-          if (!response.ok) {
-            return response.json().then((data) => {
-              throw new Error(data.message || "Network response was not ok")
-            })
-          }
-          return response.json()
-        })
-        .then((data) => {
-          console.log("Stock purchased successfully:", data)
-          alert(`Stock purchased successfully! Total cost: $${data.total_cost.toFixed(2)}`)
-
-          // Reset form
-          stockNameInput.value = ""
-          rateInput.value = ""
-          quantityInput.value = ""
-          dateInput.value = ""
-          if (descriptionInput) descriptionInput.value = ""
-
-          // Hide modal
-          hideModal(buyStockModal)
-
-          // Reload investments
-          loadInvestments()
-          displayWalletBalance()
-        })
-        .catch((error) => {
-          console.error("Error buying stock:", error)
-          alert("Failed to buy stock: " + error.message)
-        })
+    // Send data to server
+    fetch("http://localhost:3000/buy-stock", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(buyData),
     })
-  }
+      .then((response) => {
+        if (!response.ok) {
+          return response.json().then((data) => {
+            throw new Error(data.message || "Network response was not ok");
+          });
+        }
+        return response.json();
+      })
+      .then((data) => {
+        console.log("Stock purchased successfully:", data);
+        alert(`Stock purchased successfully! Total cost: $${data.total_cost.toFixed(2)}`);
+
+        // Reset form
+        stockNameInput.value = "";
+        rateInput.value = "";
+        quantityInput.value = "";
+        dateInput.value = "";
+        if (descriptionInput) descriptionInput.value = "";
+
+        // Hide modal
+        hideModal(buyStockModal);
+
+        // Update wallet balance in local storage and UI
+        const currentBalance = getWalletBalance();
+        const newBalance = currentBalance - totalCost;
+        localStorage.setItem(`wallet_balance_${currentUser.id}`, newBalance.toFixed(2));
+        
+        // Reload investments and update wallet display
+        loadInvestments();
+        displayWalletBalance();
+
+        // If on dashboard page, update the wallet balance display
+        if (document.getElementById("wallet-balance")) {
+          document.getElementById("wallet-balance").textContent = `$${newBalance.toFixed(2)}`;
+        }
+      })
+      .catch((error) => {
+        console.error("Error buying stock:", error);
+        alert("Failed to buy stock: " + error.message);
+      });
+  });
+}
 
   // Show Wallet Modal
   if (walletBtn) {
@@ -702,3 +917,10 @@ document.addEventListener("DOMContentLoaded", () => {
   })
 })
 
+document.querySelector('.logout-btn').addEventListener('click', function() {
+    // Clear user data from localStorage
+    localStorage.removeItem('currentUser');
+    
+    // Redirect to login page
+    window.location.href = '../LoginPage/Login.html';
+});

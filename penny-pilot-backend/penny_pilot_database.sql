@@ -60,6 +60,40 @@ CREATE TABLE debit_entries (
 
 select * from debit_entries;
 
+--------------------- Debts-------------------------
+CREATE TABLE IF NOT EXISTS debts (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    amount DECIMAL(10, 2) NOT NULL,
+    interest_rate DECIMAL(5, 2) DEFAULT 0,
+    interest_type ENUM('simple', 'compound') DEFAULT 'simple',
+    start_date DATE NOT NULL,
+    due_date DATE NOT NULL,
+    description TEXT,
+    counterparty VARCHAR(255), -- Person who gave/received the debt
+    status ENUM('active', 'partially_paid', 'fully_paid') DEFAULT 'active',
+    debt_type ENUM('given', 'received') NOT NULL,
+    remaining_amount DECIMAL(10, 2),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+select * from debts;
+
+CREATE TABLE IF NOT EXISTS debt_transactions (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    debt_id INT NOT NULL,
+    amount DECIMAL(10, 2) NOT NULL,
+    transaction_date DATE NOT NULL,
+    transaction_type ENUM('payment', 'collection') NOT NULL,
+    description TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (debt_id) REFERENCES debts(id)
+);
+
+select * from debt_transactions;
+
 
 -- New table for stock investments
 CREATE TABLE stock_investments (

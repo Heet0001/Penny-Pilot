@@ -4,143 +4,341 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Penny Pilot - Investments</title>
-    <link rel="stylesheet" href="../Dashboard/Dashboard_style.css">
-    <link rel="stylesheet" href="../Dashboard/Functionality.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper/swiper-bundle.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Righteous&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.min.css">
+    <link rel="stylesheet" href="investment_style.css">
+    <style>
+        /* Additional investment-specific styles */
+
+        
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            width: 450px;
+            max-width: 90%;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+        
+        .hidden {
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .modal-buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .modal-btn {
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .close-btn {
+            background: #f5f6fa;
+            border: 1px solid #ddd;
+        }
+        
+        .save-btn {
+            background: #6C5CE7;
+            color: white;
+            border: none;
+        }
+    </style>
 </head>
 <body>
-    <nav class="navbar">
-        <div class="logo">Penny Pilot</div>
-        
-        <div class="profile-container">
-            <img src="user.png" alt="Profile" id="profile-icon">
-            <span id="username-tooltip"></span> 
+    <!-- Glassmorphic Sidebar -->
+    <div class="sidebar">
+        <div class="sidebar-logo">
+            <div class="logo">
+                <div class="logo-icon">
+                    <i class="fas fa-coins"></i>
+                </div>
+                <div class="logo-text">Penny Pilot</div>
+            </div>
         </div>
-    </nav>
-    
-    <div class="middle-body">
-        <div class="left-buttons">
-            <button class="big-btn" id="add-entry-btn">Sell Stocks</button>
-            <div id="entry-modal" class="modal-overlay">
-                <div class="modal-content"> 
-                    <h2>Sell Stocks</h2>
-    
-                    <label for="entry-category">Select Stock</label>
-                    <select id="entry-category">
-                        <option value="" disabled selected>Select a stock</option>
-                    </select>
-
-                    <label for="entry-amount">Rate</label>
-                    <input type="number" id="entry-amount" placeholder="Enter amount">
-
-                    <label for="entry-quantity">Quantity</label>
-                    <input type="number" id="entry-quantity" placeholder="Enter quantity" step="0.00000001" min="0.00000001">
-            
-                    <label for="entry-date">Selling Date:</label>
-                    <input type="date" id="entry-date">
-            
-                    <div class="modal-buttons">   
-                        <button id="close-modal" class="modal-btn close-btn">Cancel</button>
-                        <button id="save-entry" class="modal-btn save-btn">Save</button>
-                    </div>
-                </div>
-            </div>            
-            
-            <button class="big-btn" id="debit-entry-btn">Buy Stocks</button>
-            <div id="debit-modal" class="modal-overlay">
-                <div class="modal-content">
-                    <h2>Buy Stocks</h2>
-            
-                    <label for="stock-name">Name of share</label>
-                    <input type="text" id="stock-name" placeholder="Enter Stock Name">
-                    
-                    <label for="debit-amount">Rate</label>
-                    <input type="number" id="debit-amount" placeholder="Enter amount">
-
-                    <label for="debit-quantity">Quantity</label>
-                    <input type="number" id="debit-quantity" placeholder="Enter quantity" step="0.00000001" min="0.00000001">
-            
-                    <label for="debit-date">Buying Date:</label>
-                    <input type="date" id="debit-date">
-            
-                    <label for="debit-description">Description:</label>
-                    <textarea id="debit-description" placeholder="Enter details"></textarea>
-            
-                    <div class="modal-buttons">
-                        <button id="close-debit-modal" class="modal-btn close-btn">Cancel</button>
-                        <button id="save-debit" class="modal-btn save-btn">Save</button>
-                    </div>
-                </div>           
-            </div>
-               
-            <button class="big-btn" id="wallet-btn">Wallet</button>
-            <div id="wallet-modal" class="modal-overlay">
-                <div class="modal-content">
-                    <h2>Wallet</h2>
-                    <p>Current Balance: <span id="wallet-balance">$0.00</span></p>
-                    
-                    <div class="modal-buttons">
-                        <button id="add-expense-btn" class="modal-btn close-btn">Buy Stocks</button>
-                        <button id="add-funds-btn" class="modal-btn save-btn">Sell Stocks</button>
-                        <button id="close-wallet-btn" class="modal-btn close-btn">Close</button>
-                    </div>
-                </div>
-            </div>
-        </div>        
         
-        <div class="swiper">
-            <div class="swiper-wrapper">
-                <div class="swiper-slide">
-                    <div class="date-picker-container">
-                        <label for="from-date">From Date:</label>
-                        <input type="date" id="from-date">
-                    
-                        <label for="to-date">To Date:</label>
-                        <input type="date" id="to-date">
-                    </div> 
-                    <button class="small-btn">Export PDF</button>                  
-                </div>
-                <div class="swiper-slide">
-                    <div class="date-picker-container">
-                        <label for="from-date">From Date:</label>
-                        <input type="date" id="from-date">
-                    
-                        <label for="to-date">To Date:</label>
-                        <input type="date" id="to-date">
-                    </div>    
-                    <button class="small-btn">Export PDF</button>   
-                </div>
-                <div class="swiper-slide">
-                    <div class="date-picker-container">
-                        <label for="from-date">From Date:</label>
-                        <input type="date" id="from-date">
-                    
-                        <label for="to-date">To Date:</label>
-                        <input type="date" id="to-date">
-                    </div>   
-                    <button class="small-btn">Export PDF</button>    
-                </div>
-            </div>
-            <!-- Navigation buttons -->
-            <div class="swiper-button-next"></div>
-            <div class="swiper-button-prev"></div>
-            <!-- Pagination -->
-            <div class="swiper-pagination"></div>
+        <div class="sidebar-menu">
+            <a href="../Dashboard/dashboard.html" class="menu-item">
+                <i class="fas fa-wallet"></i>
+                <span>Expenditure</span>
+            </a>
+            <a href="../Debts/debts.html" class="menu-item">
+                <i class="fas fa-hand-holding-usd"></i>
+                <span>Debts</span>
+            </a>
+            <a href="#" class="menu-item active">
+                <i class="fas fa-chart-line"></i>
+                <span>Investments</span>
+            </a>
+            <a href="../MoneyTransfer/moneytransfer.html" class="menu-item">
+                <i class="fas fa-exchange-alt"></i>
+                <span>Money Transfer</span>
+            </a>
         </div>
-    </div>
-
-    <div class="bottom-buttons">
-        <button class="nav-btn" data-index="0">Expenditure</button>
-        <button class="nav-btn">Debts</button>
-        <button class="nav-btn">Investments</button>
-        <button class="nav-btn" data-index="3">Transfer Money</button>
+        
+        <button class="logout-btn">
+            <i class="fas fa-sign-out-alt"></i>
+            <span>Logout</span>
+        </button>
     </div>
     
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Static Content (Upper Page) -->
+        <div class="static-content">
+            <!-- Navbar -->
+            <div class="navbar">
+                <div></div> <!-- Empty spacer -->
+                <div class="user-profile">
+                    <div class="user-avatar" id="user-avatar"></div>
+                    <div class="user-tooltip" id="user-tooltip"></div>
+                </div>
+            </div>
+            
+            <!-- Balance Cards - Will be updated by JavaScript -->
+            <div class="balance-section">
+                <div class="balance-card wallet-card">
+                    <div class="balance-header">
+                        <i class="fas fa-wallet"></i>
+                        <span>Total Invested</span>
+                    </div>
+                    <div class="balance-amount" id="total-invested">$0.00</div>
+                    <div class="balance-subtext">Across all investments</div>
+                </div>
+                
+                <div class="balance-card emergency-card">
+                    <div class="balance-header">
+                        <i class="fas fa-piggy-bank"></i>
+                        <span>Current Value</span>
+                    </div>
+                    <div class="balance-amount" id="current-value">$0.00</div>
+                    <div class="balance-subtext" id="profit-loss">+$0.00 (0.00%)</div>
+                </div>
+            </div>
+            
+            <!-- Charts Section -->
+            <div class="charts-section">
+                <div class="charts-container">
+                    <div class="export-actions">
+                        <button class="export-pdf-btn" id="export-pdf-btn">
+                            <i class="fas fa-file-pdf"></i>
+                            <span>Export PDF</span>
+                        </button>
+                    </div>
+                    
+                    
+                    <div class="swiper-container">
+                        <div class="swiper-wrapper">
+                            <div class="swiper-slide">
+                                <div class="chart-placeholder">
+                                    <i class="fas fa-chart-pie"></i>
+                                    <p>Your portfolio allocation will appear here</p>
+                                </div>
+                            </div>
+                            <div class="swiper-slide">
+                                <div class="chart-placeholder">
+                                    <i class="fas fa-chart-line"></i>
+                                    <p>Your investment growth will appear here</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="swiper-button-next"></div>
+                        <div class="swiper-button-prev"></div>
+                    </div>
+                </div>            
+            </div>
+            <div class="scroll-hint">
+                <i class="fas fa-chevron-down"></i>
+            </div>
+        </div>
+        
+        <!-- Sliding Section (Lower Page) -->
+        <div class="sliding-section">
+            <div class="transactions-section">
+                <div class="transactions-container">
+                    <div class="section-header">
+                        <div class="section-title">Your Holdings</div>
+                        <div style="font-size: 14px; color: #7F8C8D;">Current investments</div>
+                    </div>
+                    
+                    <div class="transaction-list" id="investments-list">
+                        <!-- Will be populated by JavaScript -->
+                        <div class="no-investments" style="text-align: center; padding: 20px; color: #7F8C8D;">
+                            No active investments found. Start investing by clicking "Buy Stocks".
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Add Button -->
+    <button class="add-button" id="addButton">
+        <i class="fas fa-plus" id="addIcon"></i>
+    </button>
+    
+    <!-- Add Options -->
+    <div class="add-options" id="addOptions">
+        <div class="add-option option-credit" id="buy-stock-option">
+            <i class="fas fa-plus-circle"></i>
+            <span>Buy Stocks</span>
+        </div>
+        <div class="add-option option-debit" id="sell-stock-option">
+            <i class="fas fa-minus-circle"></i>
+            <span>Sell Stocks</span>
+        </div>
+    </div>
+    
+    <!-- Modals from original implementation -->
+
+<!-- PDF Export Modal -->
+<!-- PDF Export Modal -->
+<div id="pdf-export-modal" class="modal-overlay">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Export Investment Report</h2>
+            <button class="modal-close" onclick="closeModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <form id="pdf-export-form">
+                <div class="radio-group">
+                    <div class="radio-option">
+                        <input type="radio" id="full-report" name="reportType" value="full" checked>
+                        <label for="full-report">Full Report</label>
+                    </div>
+                    <div class="radio-option">
+                        <input type="radio" id="partial-report" name="reportType" value="partial">
+                        <label for="partial-report">Partial Report</label>
+                    </div>
+                </div>
+                
+                <div class="partial-report-options" id="partial-report-options" style="display: none;">
+                    <div class="form-group">
+                        <label for="pdf-from-date">From Date</label>
+                        <input type="date" id="pdf-from-date" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label for="pdf-to-date">To Date</label>
+                        <input type="date" id="pdf-to-date" class="form-control">
+                    </div>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="button" class="btn btn-outline" id="cancel-pdf-export">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Generate PDF</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<!-- Buy Stock Modal -->
+<div id="debit-modal" class="modal-overlay">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 class="modal-title">Buy Stocks</h2>
+            <button class="modal-close" id="close-debit-modal">&times;</button>
+        </div>
+        
+        <div class="modal-body">
+            <div class="form-group">
+                <label for="stock-name">Stock Name</label>
+                <input type="text" id="stock-name" class="form-control" placeholder="e.g. AAPL, MSFT">
+            </div>
+            
+            <div class="form-group">
+                <label for="debit-amount">Price Per Share</label>
+                <input type="number" id="debit-amount" class="form-control" placeholder="0.00" step="0.01">
+            </div>
+
+            <div class="form-group">
+                <label for="debit-quantity">Quantity</label>
+                <input type="number" id="debit-quantity" class="form-control" placeholder="0" min="1" step="1">
+            </div>
+            
+            <div class="form-group">
+                <label for="debit-date">Purchase Date</label>
+                <input type="date" id="debit-date" class="form-control">
+            </div>
+            
+            <div class="form-group">
+                <label for="debit-description">Notes (Optional)</label>
+                <textarea id="debit-description" class="form-control" placeholder="Any additional details"></textarea>
+            </div>
+        </div>
+        
+        <div class="modal-footer">
+            <button id="cancel-debit" class="btn btn-outline">Cancel</button>
+            <button id="save-debit" class="btn btn-primary">Confirm Purchase</button>
+        </div>
+    </div>           
+</div>
+
+<!-- Sell Stock Modal -->
+<div id="entry-modal" class="modal-overlay">
+    <div class="modal-content"> 
+        <div class="modal-header">
+            <h2 class="modal-title">Sell Stocks</h2>
+            <button class="modal-close" id="close-modal">&times;</button>
+        </div>
+        
+        <div class="modal-body">
+            <div class="form-group">
+                <label for="entry-category">Select Stock</label>
+                <select id="entry-category" class="form-control">
+                    <option value="" disabled selected>Choose a stock to sell</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="entry-amount">Sell Price</label>
+                <input type="number" id="entry-amount" class="form-control" placeholder="0.00" step="0.01">
+            </div>
+
+            <div class="form-group">
+                <label for="entry-quantity">Quantity</label>
+                <input type="number" id="entry-quantity" class="form-control" placeholder="0" min="1" step="1">
+            </div>
+            
+            <div class="form-group">
+                <label for="entry-date">Sell Date</label>
+                <input type="date" id="entry-date" class="form-control">
+            </div>
+        </div>
+        
+        <div class="modal-footer">   
+            <button id="cancel-entry" class="btn btn-outline">Cancel</button>
+            <button id="save-entry" class="btn btn-primary">Confirm Sale</button>
+        </div>
+    </div>
+</div>
+
+
+    <script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
     <script src="investment_script.js"></script>
-    <script src="../Dashboard/Functionality.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/swiper/swiper-bundle.min.js"></script>
-    <script src="../Dashboard/Dashboard_script.js"></script>
-    <script src="../Dashboard/Dashboard_user(h).js"></script>
+    <script>
+    </script>
 </body>
 </html>
-
