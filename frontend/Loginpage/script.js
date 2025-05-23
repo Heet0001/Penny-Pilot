@@ -166,7 +166,7 @@ function logout() {
     })
     .finally(() => {
         // Redirect to login page regardless of server response
-        window.location.href = '/Loginpage/login.html';
+        window.location.href = '/Loginpage/index.html';
     });
 }
 
@@ -177,7 +177,7 @@ function checkLoginStatus() {
     
     if (!isAuthenticated || !currentUser) {
         // Redirect to login page if not logged in
-        window.location.href = '/Loginpage/login.html';
+        window.location.href = '/Loginpage/index.html';
         return null;
     }
     
@@ -187,7 +187,7 @@ function checkLoginStatus() {
         console.error('Error parsing user data:', error);
         localStorage.removeItem('currentUser');
         localStorage.removeItem('isAuthenticated');
-        window.location.href = '/Loginpage/login.html';
+        window.location.href = '/Loginpage/index.html';
         return null;
     }
 }
@@ -223,7 +223,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     // Check if we're on the login page
-    if (window.location.pathname.includes('login.html') || window.location.pathname === '/') {
+    if (window.location.pathname.includes('index.html') || window.location.pathname === '/') {
         redirectIfLoggedIn();
     }
     // For other pages, check login status

@@ -10,7 +10,7 @@ import dotenv from 'dotenv';
 // Configure dotenv to look for .env in the root directory
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-dotenv.config({ path: path.resolve(__dirname, '../.env') });
+dotenv.config({ path: path.resolve(__dirname, '.env') });
 
 const app = express()
 
@@ -24,12 +24,12 @@ app.use(express.urlencoded({ extended: true }))
 // Define the base directory for your project
 const projectBaseDir = __dirname
 // Update these paths
-const LoginpageDir = path.join(__dirname, "../frontend/Loginpage")
-const dashboardDir = path.join(__dirname, "../frontend/Dashboard")
-const debtsDir = path.join(__dirname, "../frontend/Debts")
-const investmentDir = path.join(__dirname, "../frontend/Investment")
-const moneyTransferDir = path.join(__dirname, "../frontend/MoneyTransfer")
-const utilsDir = path.join(__dirname, "../frontend/utils")
+const LoginpageDir = path.join(__dirname, "frontend/Loginpage")
+const dashboardDir = path.join(__dirname, "frontend/Dashboard")
+const debtsDir = path.join(__dirname, "frontend/Debts")
+const investmentDir = path.join(__dirname, "frontend/Investment")
+const moneyTransferDir = path.join(__dirname, "frontend/MoneyTransfer")
+const utilsDir = path.join(__dirname, "frontend/utils")
 
 
 // Serve static files from different directories
@@ -65,7 +65,7 @@ const checkAuth = (req, res, next) => {
   const sessionData = req.headers['x-session-data'];
   
   if (!authHeader && !sessionData) {
-    return res.redirect('/Loginpage/login.html');
+    return res.redirect('/Loginpage/index.html');
   }
 
   try {
@@ -82,7 +82,7 @@ const checkAuth = (req, res, next) => {
     req.user = user;
     next();
   } catch (error) {
-    return res.redirect('/Loginpage/login.html');
+    return res.redirect('/Loginpage/index.html');
   }
 }
 
@@ -203,11 +203,15 @@ app.get("/api/stock-price/:symbol", async (req, res) => {
 app.get("/", (req, res) => {
   // Check if user is authenticated via session or token
   // For now, we'll just redirect to login page
-  res.redirect("/Loginpage/Index.html");
+  res.redirect("/Loginpage/index.html");
 });
 
-app.get("/Loginpage/Index.html", (req, res) => {
-  res.sendFile(path.join(LoginpageDir, "Index.html"))
+app.get("/Loginpage/index.html", (req, res) => {
+  res.sendFile(path.join(LoginpageDir, "index.html"))
+})
+
+app.get("/Loginpage/index.html", (req, res) => {
+  res.sendFile(path.join(LoginpageDir, "index.html"));
 })
 
 app.get("/dashboard", checkAuth, (req, res) => {
