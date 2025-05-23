@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Penny Pilot - Money Transfer</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Righteous&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="moneytransfer.css">    
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+    <!-- Add jsPDF library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+</head>
+<body>
+    <!-- Glassmorphic Sidebar -->
+    <div class="sidebar">
+        <div class="sidebar-logo">
+            <div class="logo">
+                <div class="logo-icon">
+                    <i class="fas fa-coins"></i>
+                </div>
+                <div class="logo-text">Penny Pilot</div>
+            </div>
+        </div>
+        
+        <div class="sidebar-menu">
+            <a href="../Dashboard/dashboard.html" class="menu-item">
+                <i class="fas fa-wallet"></i>
+                <span>Expenditure</span>
+            </a>
+            <a href="../Debts/debts.html" class="menu-item">
+                <i class="fas fa-hand-holding-usd"></i>
+                <span>Debts</span>
+            </a>
+            <a href="../Investment/Investments.html" class="menu-item">
+                <i class="fas fa-chart-line"></i>
+                <span>Investments</span>
+            </a>
+            <a href="#" class="menu-item active">
+                <i class="fas fa-exchange-alt"></i>
+                <span>Money Transfer</span>
+            </a>
+        </div>
+        
+        <div class="logout-container">
+            <button class="logout-btn" id="logout-btn">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Logout</span>
+            </button>
+        </div>
+    </div>
+    
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Static Content (Upper Page) -->
+        <div class="static-content">
+            <!-- Navbar -->
+            <div class="navbar">
+                <div></div> <!-- Empty spacer -->
+                <div class="user-profile">
+                    <div class="user-avatar">JD</div>
+                    <div class="user-tooltip">John Doe</div>
+                </div>
+            </div>
+            
+            <!-- Balance Cards -->
+            <div class="balance-section">
+                <div class="balance-card wallet-card">
+                    <div class="balance-header">
+                        <i class="fas fa-wallet"></i>
+                        <span>Wallet Balance</span>
+                    </div>
+                    <div class="balance-amount" id="wallet-balance">$0.00</div>
+                </div>
+                
+                <div class="balance-card emergency-card">
+                    <div class="balance-header">
+                        <i class="fas fa-clock"></i>
+                        <span>Pending Transfers</span>
+                    </div>
+                    <div class="balance-amount" id="pending-count">0</div>
+                </div>
+            </div>
+            
+            <!-- Recent Transfers Section -->
+            <div class="transactions-section">
+                <div class="transactions-container">
+                    <div class="section-header">
+                        <div class="section-title">Recent Transfers</div>
+                        <div class="section-actions">
+                            <button id="transfer-history-btn" class="history-btn">
+                                <i class="fas fa-history"></i>
+                                <span>View History</span>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="transaction-list" id="recent-transfers">
+                        <!-- Will be populated by JavaScript -->
+                        <div class="empty-state">
+                            <i class="fas fa-exchange-alt"></i>
+                            <p>Your recent transfers will appear here</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Add Button -->
+    <button class="add-button" id="addButton">
+        <i class="fas fa-plus" id="addIcon"></i>
+    </button>
+    
+    <!-- Add Options -->
+    <div class="add-options" id="addOptions">
+      
+        <div class="add-option option-expense" id="add-expense-btn">
+            <i class="fas fa-exchange-alt"></i>
+            <span>Transfer as Expense</span>
+        </div>
+    </div>
+    
+    <!-- Transfer Form Modal -->
+    <!-- Transfer Form Modal -->
+<div id="transfer-modal" class="modal-overlay">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 id="transfer-modal-title">Transfer</h2>
+            <span class="close-btn">&times;</span>
+        </div>
+        <div class="modal-body">
+            <form id="transfer-form">
+                <input type="hidden" id="transfer-type" value="">
+                <div class="form-group">
+                    <label for="recipient-email">Recipient Email:</label>
+                    <input type="email" id="recipient-email" placeholder="Enter recipient email" required>
+                </div>
+                <div class="form-group">
+                    <label for="transfer-amount">Amount:</label>
+                    <input type="number" id="transfer-amount" placeholder="Enter amount" min="0.01" step="0.01" required>
+                </div>
+                
+                <!-- Debt-specific fields (hidden by default) -->
+                <div id="debt-fields" style="display: none;">
+                    <div class="form-group">
+                        <label for="debt-start-date">Start Date:</label>
+                        <input type="date" id="debt-start-date" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="debt-due-date">Due Date:</label>
+                        <input type="date" id="debt-due-date" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="debt-interest-rate">Interest Rate (%):</label>
+                        <input type="number" id="debt-interest-rate" placeholder="0" min="0" step="0.01">
+                    </div>
+                    <div class="form-group">
+                        <label for="debt-interest-type">Interest Type:</label>
+                        <select id="debt-interest-type">
+                            <option value="simple">Simple</option>
+                            <option value="compound">Compound</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="transfer-description">Description:</label>
+                    <textarea id="transfer-description" placeholder="Enter details"></textarea>
+                </div>
+                <div class="modal-buttons">
+                    <button type="button" class="modal-btn close-btn">Cancel</button>
+                    <button type="submit" class="modal-btn save-btn">Send Money</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+    <script src="money_transfer.js"></script>
+</body>
+</html>
+

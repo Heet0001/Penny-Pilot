@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+    <title>Penny Pilot</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Righteous&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="Dashboard_style.css">
+    <!-- Add authentication check script -->
+    <script>
+        // Check authentication on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            const isAuthenticated = localStorage.getItem('isAuthenticated');
+            const currentUser = localStorage.getItem('currentUser');
+            
+            if (!isAuthenticated || !currentUser) {
+                window.location.href = '/Loginpage/login.html';
+                return;
+            }
+            
+            try {
+                const user = JSON.parse(currentUser);
+                // Update user info in the UI
+                const userNameElements = document.querySelectorAll('.user-name, #user-name');
+                userNameElements.forEach(element => {
+                    element.textContent = user.name || 'User';
+                });
+                
+                const userEmailElements = document.querySelectorAll('.user-email, #user-email');
+                userEmailElements.forEach(element => {
+                    element.textContent = user.email || '';
+                });
+
+                // Add session data to all fetch requests
+                const originalFetch = window.fetch;
+                window.fetch = function(url, options = {}) {
+                    options.headers = options.headers || {};
+                    options.headers['x-session-data'] = currentUser;
+                    return originalFetch(url, options);
+                };
+            } catch (error) {
+                console.error('Error parsing user data:', error);
+                localStorage.removeItem('currentUser');
+                localStorage.removeItem('isAuthenticated');
+                window.location.href = '/Loginpage/login.html';
+            }
+        });
+    </script>
+</head>
+<body>
+    <!-- Glassmorphic Sidebar -->
+    <div class="sidebar">
+        <div class="sidebar-logo">
+            <div class="logo">
+                <div class="logo-icon">
+                    <i class="fas fa-coins"></i>
+                </div>
+                <div class="logo-text">Penny Pilot</div>
+            </div>
+        </div>
+        
+        <div class="sidebar-menu">
+            <a href="#" class="menu-item active">
+                <i class="fas fa-wallet"></i>
+                <span>Expenditure</span>
+            </a>
+            <a href="../Debts/debts.html" class="menu-item">
+                <i class="fas fa-hand-holding-usd"></i>
+                <span>Debts</span>
+            </a>
+            <a href="../Investment/Investments.html" class="menu-item">
+                <i class="fas fa-chart-line"></i>
+                <span>Investments</span>
+            </a>
+            <a href="../MoneyTransfer/moneytransfer.html" class="menu-item">
+                <i class="fas fa-exchange-alt"></i>
+                <span>Money Transfer</span>
+            </a>
+        </div>
+        
+        <button class="logout-btn" id="logout-btn">
+            <i class="fas fa-sign-out-alt"></i>
+            <span>Logout</span>
+        </button>
+    </div>
+    
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Static Content (Upper Page) -->
+        <div class="static-content">
+            <!-- Navbar -->
+            <div class="navbar">
+                <div></div> <!-- Empty spacer -->
+                <div class="user-profile">
+                    <div class="user-avatar" id="profile-icon"></div>
+                    <div class="user-tooltip" id="username-tooltip"></div>
+                </div>
+            </div>
+            
+            <!-- Balance Cards -->
+            <div class="balance-section">
+                <div class="balance-card wallet-card">
+                    <div class="balance-header">
+                        <i class="fas fa-wallet"></i>
+                        <span>Wallet Balance</span>
+                    </div>
+                    <div class="balance-amount" id="wallet-balance">₹0.00</div>
+                </div>
+                
+                <div class="balance-card emergency-card">
+                    <div class="balance-header">
+                        <i class="fas fa-piggy-bank"></i>
+                        <span>Emergency Fund</span>
+                    </div>
+                    <div class="balance-amount" id="emergency-balance">₹0.00</div>
+                </div>
+            </div>
+            
+            <!-- Charts Section -->
+            <div class="charts-section">
+                <div class="charts-container">
+                    <div class="export-actions">
+                        <button class="export-pdf-btn" id="export-pdf-btn">
+                            <i class="fas fa-file-pdf"></i>
+                            <span>Export PDF</span>
+                        </button>
+                    </div>
+                    
+                    <div class="swiper-container">
+                        <div class="swiper-wrapper">
+                            <div class="swiper-slide">
+                                <div class="chart-container">
+                                    <div class="chart-wrapper">
+                                        <canvas id="debitPieChart"></canvas>
+                                    </div>
+                                    <div class="chart-wrapper">
+                                        <canvas id="creditPieChart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="swiper-slide">
+                                <div class="chart-container">
+                                    <div class="chart-wrapper">
+                                        <canvas id="debitBarChart"></canvas>
+                                    </div>
+                                    <div class="chart-wrapper">
+                                        <canvas id="creditBarChart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="swiper-button-next"></div>
+                        <div class="swiper-button-prev"></div>
+                    </div>
+                </div>            
+            </div>
+            <div class="scroll-hint">
+                <i class="fas fa-chevron-down"></i>
+            </div>
+        </div>
+        
+        <!-- Sliding Section (Lower Page) -->
+        <div class="sliding-section">
+            <div class="transactions-section">
+                <div class="transactions-container">
+                    <div class="section-header">
+                        <div class="section-title">Recent Transactions</div>
+                        <div style="font-size: 14px; color: #7F8C8D;">Last 30 days</div>
+                    </div>
+                    
+                    <div class="transaction-list" id="transaction-list">
+                        <!-- Transactions will be loaded dynamically -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Add Button -->
+    <button class="add-button" id="addButton">
+        <i class="fas fa-plus" id="addIcon"></i>
+    </button>
+    
+    <!-- Add Options -->
+    <div class="add-options" id="addOptions">
+        <div class="add-option option-credit" id="add-credit-btn">
+            <i class="fas fa-plus-circle"></i>
+            <span>Credit Entry</span>
+        </div>
+        <div class="add-option option-debit" id="add-debit-btn">
+            <i class="fas fa-minus-circle"></i>
+            <span>Debit Entry</span>
+        </div>
+        <div class="add-option option-emergency" id="add-emergency-btn">
+            <i class="fas fa-piggy-bank"></i>
+            <span>Emergency Fund</span>
+        </div>
+    </div>
+    
+    <!-- All Modals (Credit, Debit, Emergency) -->
+     <!-- PDF Export Modal -->
+    <div id="pdf-export-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">Export Report</div>
+                <div class="close-btn" id="close-pdf-modal">&times;</div>
+            </div>
+            <div class="modal-body">
+                <form id="pdf-export-form">
+                    <div class="radio-group">
+                        <div class="radio-option">
+                            <input type="radio" id="full-report" name="reportType" value="full" checked>
+                            <label for="full-report">Full Report</label>
+                        </div>
+                        <div class="radio-option">
+                            <input type="radio" id="partial-report" name="reportType" value="partial">
+                            <label for="partial-report">Partial Report</label>
+                        </div>
+                    </div>
+                    
+                    <div class="partial-report-options" id="partial-report-options" style="display: none;">
+                        <div class="form-group">
+                            <label for="pdf-from-date">From Date</label>
+                            <input type="date" id="pdf-from-date" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label for="pdf-to-date">To Date</label>
+                            <input type="date" id="pdf-to-date" class="form-control">
+                        </div>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-outline" id="cancel-pdf-export">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Generate PDF</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <!-- Credit Modal -->
+    <div id="entry-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">Credit Funds</div>
+                <div class="close-btn" id="close-modal">&times;</div>
+            </div>
+            <div class="modal-body">
+                <form id="credit-form">
+                    <div class="form-group">
+                        <label for="entry-amount">Amount</label>
+                        <input type="number" id="entry-amount" class="form-control" placeholder="Enter amount" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="entry-category">Category</label>
+                        <select id="entry-category" class="form-control" required>
+                            <option value="Salary">Salary</option>
+                            <option value="Debt Taken">Debt Taken</option>
+                            <option value="Investments Relieved">Investments Relieved</option>
+                            <option value="From Emergency">From Emergency</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="entry-date">Date</label>
+                        <input type="date" id="entry-date" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="entry-description">Description (Optional)</label>
+                        <textarea id="entry-description" class="form-control" placeholder="Enter details"></textarea>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-outline" id="close-modal-btn">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Save</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Debit Modal -->
+    <div id="debit-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">Debit Funds</div>
+                <div class="close-btn" id="close-debit-modal">&times;</div>
+            </div>
+            <div class="modal-body">
+                <form id="debit-form">
+                    <div class="form-group">
+                        <label for="debit-amount">Amount</label>
+                        <input type="number" id="debit-amount" class="form-control" placeholder="Enter amount" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="debit-category">Category</label>
+                        <select id="debit-category" class="form-control" required>
+                            <option value="Food">Food</option>
+                            <option value="Transport">Transport</option>
+                            <option value="Entertainment">Entertainment</option>
+                            <option value="Bills">Bills</option>
+                            <option value="Emergency">Emergency</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="debit-date">Date</label>
+                        <input type="date" id="debit-date" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="debit-description">Description (Optional)</label>
+                        <textarea id="debit-description" class="form-control" placeholder="Enter details"></textarea>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-outline" id="close-debit-modal-btn">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Save</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Emergency Fund Modal -->
+    <div id="emergency-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">Emergency Fund</div>
+                <div class="close-btn" id="close-emergency-btn">&times;</div>
+            </div>
+            <div class="modal-body">
+                <div class="balance-display">
+                    <p>Current Balance: <span id="emergency-balance-modal">₹0.00</span></p>
+                </div>
+                <form id="emergency-form">
+                    <div class="radio-group">
+                        <div class="radio-option">
+                            <input type="radio" id="addFund" name="fundAction" value="add" checked>
+                            <label for="addFund">Add to Fund</label>
+                        </div>
+                        <div class="radio-option">
+                            <input type="radio" id="withdrawFund" name="fundAction" value="withdraw">
+                            <label for="withdrawFund">Withdraw from Fund</label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="fund-amount">Amount</label>
+                        <input type="number" id="fund-amount" class="form-control" placeholder="Enter amount" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="fund-date">Date</label>
+                        <input type="date" id="fund-date" class="form-control" required>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-outline" id="cancel-fund-btn">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Confirm</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
+    <script src="/utils/pdf-export.js"></script>
+    <script src="Dashboard_script.js"></script>
+</body>
+</html>
