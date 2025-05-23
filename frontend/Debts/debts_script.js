@@ -1729,5 +1729,5 @@ document.querySelector('.logout-btn').addEventListener('click', function() {
     localStorage.removeItem('currentUser');
     
     // Redirect to login page
-    window.location.href = '../Loginpage/Login.html';
+    window.location.href = '../Loginpage/Index.html';
 });

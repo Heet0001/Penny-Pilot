@@ -2,7 +2,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const currentUser = JSON.parse(localStorage.getItem("currentUser"))
 
   if (!currentUser) {
-    window.location.href = "../Loginpage/Login.html"
+    window.location.href = "../Loginpage/Index.html"
     return
   }
 
@@ -188,7 +188,7 @@ function hideAddOptions() {
 
 function handleLogout() {
   localStorage.removeItem("currentUser")
-  window.location.href = "../Loginpage/Login.html"
+  window.location.href = "../Loginpage/Index.html"
 }
 
 async function sendMoneyTransfer() {

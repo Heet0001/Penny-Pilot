@@ -18,7 +18,7 @@
             const currentUser = localStorage.getItem('currentUser');
             
             if (!isAuthenticated || !currentUser) {
-                window.location.href = '/Loginpage/login.html';
+                window.location.href = '/Loginpage/index.html';
                 return;
             }
             
@@ -46,7 +46,7 @@
                 console.error('Error parsing user data:', error);
                 localStorage.removeItem('currentUser');
                 localStorage.removeItem('isAuthenticated');
-                window.location.href = '/Loginpage/login.html';
+                window.location.href = '/Loginpage/index.html';
             }
         });
     </script>

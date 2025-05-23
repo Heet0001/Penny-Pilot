@@ -49,7 +49,7 @@ document.addEventListener("DOMContentLoaded", function () {
     // Initialize user data
     const currentUser = JSON.parse(localStorage.getItem("currentUser"));
     if (!currentUser) {
-        window.location.href = "../Loginpage/Login.html";
+        window.location.href = "../Loginpage/Index.html";
         return;
     }
 
@@ -1029,7 +1029,7 @@ document.addEventListener("DOMContentLoaded", function () {
         // Clear user data from localStorage
         localStorage.removeItem("currentUser");
         // Redirect to login page
-        window.location.href = "../Loginpage/Login.html";
+        window.location.href = "../Loginpage/Index.html";
     });
 
     // Initialize date pickers
