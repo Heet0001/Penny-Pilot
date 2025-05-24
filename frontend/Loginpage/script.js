@@ -3,6 +3,17 @@ const signUpButton = document.getElementById('signUp');
 const signInButton = document.getElementById('signIn');
 const container = document.getElementById('container');
 
+
+
+
+const BASE_URL = window.location.hostname === "localhost"
+  ? "http://localhost:3000"
+  : "https://penny-pilot-production.up.railway.app";
+
+
+
+
+
 if (signUpButton) {
     signUpButton.addEventListener('click', () => {
         container.classList.add('right-panel-active');
@@ -112,7 +123,8 @@ if (signInForm) {
             return;
         }
         
-        fetch('http://localhost:3000/signin', {
+      fetch(`${BASE_URL}/signin`, {
+
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
