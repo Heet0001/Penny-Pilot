@@ -1,3 +1,7 @@
+const BASE_URL = window.location.hostname === "localhost"
+  ? "http://localhost:3000"
+  : "https://penny-pilot-production.up.railway.app";
+
 let priceRefreshInterval = null;
 
 function displayUserProfile() {
@@ -37,7 +41,7 @@ function fetchWalletBalance() {
   const currentUser = JSON.parse(localStorage.getItem("currentUser"));
   if (!currentUser || !currentUser.id) return;
 
-  fetch(`http://localhost:3000/get-wallet-balance/${currentUser.id}`)
+  fetch(`${BASE_URL}/get-wallet-balance/${currentUser.id}`)
     .then(response => {
       if (!response.ok) throw new Error('Network response was not ok');
       return response.json();
@@ -75,7 +79,7 @@ function loadInvestments() {
   const currentUser = JSON.parse(localStorage.getItem("currentUser"));
   if (!currentUser || !currentUser.id) return;
 
-  fetch(`http://localhost:3000/api/get-investments/${currentUser.id}`)
+  fetch(`${BASE_URL}/api/get-investments/${currentUser.id}`)
     .then((response) => {
       if (!response.ok) throw new Error("Network response was not ok");
       return response.json();
@@ -573,7 +577,7 @@ function setupStockNameInput() {
         fetchPriceBtn.classList.add('loading');
         
         // Call our server endpoint instead of Alpha Vantage directly
-        const response = await fetch(`http://localhost:3000/api/stock-price/${stockName}`, {
+        const response = await fetch(`${BASE_URL}/api/stock-price/${stockName}`, {
           method: 'GET',
           headers: {
             'Accept': 'application/json'
@@ -857,7 +861,7 @@ function generateInvestmentPdfReport(reportType, fromDate, toDate) {
   }
 
   // Fetch investment data
-  fetch(`http://localhost:3000/api/get-investments/${currentUser.id}`)
+  fetch(`${BASE_URL}/api/get-investments/${currentUser.id}`)
     .then((response) => {
       if (!response.ok) throw new Error("Network response was not ok");
       return response.json();
@@ -1089,7 +1093,7 @@ async function fetchStockDetails(stockName) {
       return;
     }
 
-    const response = await fetch(`http://localhost:3000/api/get-investments/${currentUser.id}`);
+    const response = await fetch(`${BASE_URL}/api/get-investments/${currentUser.id}`);
     if (!response.ok) {
       throw new Error("Failed to fetch investments");
     }
@@ -1219,7 +1223,7 @@ async function handleSellStock(event) {
     };
 
     // Call API to sell stock
-    const response = await fetch("http://localhost:3000/api/sell-stock", {
+    const response = await fetch(`${BASE_URL}/api/sell-stock`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -1638,7 +1642,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       try {
-        const response = await fetch("http://localhost:3000/api/buy-stock", {
+        const response = await fetch(`${BASE_URL}/api/buy-stock`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

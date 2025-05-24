@@ -13,6 +13,10 @@ if (typeof jsPDF === "undefined") {
     document.head.appendChild(autoTableScript)
   }
   
+  const BASE_URL = window.location.hostname === "localhost"
+    ? "http://localhost:3000"
+    : "https://penny-pilot-production.up.railway.app";
+  
   // Function to generate PDF report
   function generatePdfReport(reportType, fromDate, toDate) {
     const currentUser = JSON.parse(localStorage.getItem("currentUser"))
@@ -47,7 +51,7 @@ if (typeof jsPDF === "undefined") {
     }
   
     // Fetch transaction data
-    fetch(`http://localhost:3000/get-entries?${queryParams}`)
+    fetch(`${BASE_URL}/get-entries?${queryParams}`)
       .then((response) => {
         if (!response.ok) throw new Error("Network response was not ok")
         return response.json()
@@ -55,8 +59,8 @@ if (typeof jsPDF === "undefined") {
       .then((data) => {
         // Fetch wallet and emergency fund balances
         return Promise.all([
-          fetch(`http://localhost:3000/get-wallet-balance/${currentUser.id}`).then((res) => res.json()),
-          fetch(`http://localhost:3000/get-emergency-fund/${currentUser.id}`).then((res) => res.json()),
+          fetch(`${BASE_URL}/get-wallet-balance/${currentUser.id}`).then((res) => res.json()),
+          fetch(`${BASE_URL}/get-emergency-fund/${currentUser.id}`).then((res) => res.json()),
           Promise.resolve(data),
         ])
       })
@@ -289,14 +293,14 @@ if (typeof jsPDF === "undefined") {
     document.body.appendChild(loadingOverlay)
   
     // Fetch debt data
-    fetch(`http://localhost:3000/get-debts/${currentUser.id}`)
+    fetch(`${BASE_URL}/get-debts/${currentUser.id}`)
       .then((response) => {
         if (!response.ok) throw new Error("Network response was not ok")
         return response.json()
       })
       .then((debtData) => {
         // Fetch debt transactions
-        return fetch(`http://localhost:3000/debt-transactions/${currentUser.id}`)
+        return fetch(`${BASE_URL}/debt-transactions/${currentUser.id}`)
           .then((response) => {
             if (!response.ok) throw new Error("Network response was not ok")
             return response.json()

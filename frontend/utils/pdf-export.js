@@ -62,6 +62,10 @@ const PdfExport = {
     loadingOverlay.appendChild(loadingSpinner)
     document.body.appendChild(loadingOverlay)
 
+    const BASE_URL = window.location.hostname === "localhost"
+      ? "http://localhost:3000"
+      : "https://penny-pilot-production.up.railway.app";
+
     if (reportType === "partial") {
       const fromDateObj = new Date(fromDate)
       const toDateObj = new Date(toDate)
@@ -70,7 +74,7 @@ const PdfExport = {
 
       console.log(`Filtering entries from ${fromDateObj.toISOString()} to ${toDateObj.toISOString()}`)
 
-      fetch(`http://localhost:3000/get-entries?user_id=${currentUser.id}`)
+      fetch(`${BASE_URL}/get-entries?user_id=${currentUser.id}`)
         .then((response) => response.json())
         .then((data) => {
           creditEntries = data.entries.credit
@@ -235,7 +239,7 @@ const PdfExport = {
         })
     } else {
       // Fetch entries
-      fetch(`http://localhost:3000/get-entries?user_id=${currentUser.id}`)
+      fetch(`${BASE_URL}/get-entries?user_id=${currentUser.id}`)
         .then((response) => response.json())
         .then((data) => {
           creditEntries = data.entries.credit
@@ -547,7 +551,7 @@ const PdfExport = {
     }
 
     // Fetch debts
-    fetch(`http://localhost:3000/get-debts/${currentUser.id}`)
+    fetch(`${BASE_URL}/get-debts/${currentUser.id}`)
       .then((response) => response.json())
       .then((data) => {
         if (!data.success) {
@@ -749,7 +753,7 @@ const PdfExport = {
     }
 
     // Fetch investments
-    fetch(`http://localhost:3000/get-investments/${currentUser.id}`)
+    fetch(`${BASE_URL}/get-investments/${currentUser.id}`)
       .then((response) => response.json())
       .then((data) => {
         let investments = data.investments

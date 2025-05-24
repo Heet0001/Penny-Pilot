@@ -7,6 +7,10 @@
 
 let debitPieChart, creditPieChart, debitBarChart, creditBarChart;
 
+const BASE_URL = window.location.hostname === "localhost"
+  ? "http://localhost:3000"
+  : "https://penny-pilot-production.up.railway.app";
+
 document.addEventListener("DOMContentLoaded", function () {
     // Initialize Swiper
     const swiper = new Swiper('.swiper-container', {
@@ -292,7 +296,7 @@ document.addEventListener("DOMContentLoaded", function () {
         displayWalletBalance();
         
         // Sync with server
-        fetch('http://localhost:3000/update-wallet', {
+        fetch(`${BASE_URL}/update-wallet`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -331,7 +335,7 @@ document.addEventListener("DOMContentLoaded", function () {
         if (!currentUser) return;
 
         // Fetch wallet balance from server
-        fetch(`http://localhost:3000/get-wallet-balance/${currentUser.id}`)
+        fetch(`${BASE_URL}/get-wallet-balance/${currentUser.id}`)
             .then(response => {
                 if (!response.ok) throw new Error('Network response was not ok');
                 return response.json();
@@ -349,7 +353,7 @@ document.addEventListener("DOMContentLoaded", function () {
             });
 
         // Fetch emergency fund balance from server
-        fetch(`http://localhost:3000/get-emergency-fund/${currentUser.id}`)
+        fetch(`${BASE_URL}/get-emergency-fund/${currentUser.id}`)
             .then(response => {
                 if (!response.ok) throw new Error('Network response was not ok');
                 return response.json();
@@ -372,7 +376,7 @@ document.addEventListener("DOMContentLoaded", function () {
         if (!currentUser) return;
     
         // Fetch all entries
-        fetch(`http://localhost:3000/get-entries?user_id=${currentUser.id}`)
+        fetch(`${BASE_URL}/get-entries?user_id=${currentUser.id}`)
             .then(response => {
                 if (!response.ok) throw new Error('Network response was not ok');
                 return response.json();
@@ -768,7 +772,7 @@ document.addEventListener("DOMContentLoaded", function () {
             description: descriptionInput.value || "No description"
         };
 
-        fetch('http://localhost:3000/add-credit', {
+        fetch(`${BASE_URL}/add-credit`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -842,7 +846,7 @@ document.addEventListener("DOMContentLoaded", function () {
             description: descriptionInput.value || ''
         };
 
-        fetch('http://localhost:3000/add-debit', {
+        fetch(`${BASE_URL}/add-debit`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -919,7 +923,7 @@ document.addEventListener("DOMContentLoaded", function () {
         };
     
         // First, create the transaction
-        fetch(`http://localhost:3000/${action === 'add' ? 'add-debit' : 'add-credit'}`, {
+        fetch(`${BASE_URL}/${action === 'add' ? 'add-debit' : 'add-credit'}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

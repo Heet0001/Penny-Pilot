@@ -1,3 +1,7 @@
+const BASE_URL = window.location.hostname === "localhost"
+  ? "http://localhost:3000"
+  : "https://penny-pilot-production.up.railway.app";
+
 document.addEventListener("DOMContentLoaded", () => {
   const currentUser = JSON.parse(localStorage.getItem("currentUser"))
 
@@ -130,7 +134,7 @@ function loadWalletBalance() {
   const currentUser = JSON.parse(localStorage.getItem("currentUser"))
   if (!currentUser) return
 
-  fetch(`http://localhost:3000/get-wallet-balance/${currentUser.id}`)
+  fetch(`${BASE_URL}/get-wallet-balance/${currentUser.id}`)
     .then((response) => response.json())
     .then((data) => {
       const walletBalanceElement = document.getElementById("wallet-balance")
@@ -234,7 +238,7 @@ async function sendMoneyTransfer() {
     }
 
     // Check if user has sufficient balance
-    const walletResponse = await fetch(`http://localhost:3000/get-wallet-balance/${currentUser.id}`)
+    const walletResponse = await fetch(`${BASE_URL}/get-wallet-balance/${currentUser.id}`)
     const walletData = await walletResponse.json()
 
     if (walletData.balance < amount) {
@@ -247,7 +251,7 @@ async function sendMoneyTransfer() {
     }
 
     // Check if recipient exists
-    const userCheck = await fetch(`http://localhost:3000/check-user-exists?email=${encodeURIComponent(recipientEmail)}`)
+    const userCheck = await fetch(`${BASE_URL}/check-user-exists?email=${encodeURIComponent(recipientEmail)}`)
     const userData = await userCheck.json()
 
     if (!userData.exists) {
@@ -304,7 +308,7 @@ async function sendMoneyTransfer() {
 
     // Create transfer
     console.log(`Sending transfer to ${recipientEmail} for $${amount} as ${transferType}`)
-    const transferResponse = await fetch("http://localhost:3000/create-money-transfer", {
+    const transferResponse = await fetch(`${BASE_URL}/create-money-transfer`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(transferData),
@@ -343,7 +347,7 @@ function checkPendingTransfers() {
   const currentUser = JSON.parse(localStorage.getItem("currentUser"))
   if (!currentUser) return
 
-  fetch(`http://localhost:3000/get-pending-transfers/${currentUser.id}`)
+  fetch(`${BASE_URL}/get-pending-transfers/${currentUser.id}`)
     .then((response) => response.json())
     .then((data) => {
       if (data.transfers && data.transfers.length > 0) {
@@ -440,8 +444,8 @@ function loadRecentTransfers() {
 
   // Fetch both sent and received transfers
   Promise.all([
-    fetch(`http://localhost:3000/get-sent-transfers/${currentUser.id}`).then((res) => res.json()),
-    fetch(`http://localhost:3000/get-received-transfers/${currentUser.id}`).then((res) => res.json()),
+    fetch(`${BASE_URL}/get-sent-transfers/${currentUser.id}`).then((res) => res.json()),
+    fetch(`${BASE_URL}/get-received-transfers/${currentUser.id}`).then((res) => res.json()),
   ])
     .then(([sentData, receivedData]) => {
       // Combine and sort by date
@@ -548,7 +552,7 @@ function respondToTransfer(transferId, action) {
 
   console.log(`Responding to transfer ${transferId} with action: ${action}`);
   
-  fetch("http://localhost:3000/respond-to-transfer", {
+  fetch(`${BASE_URL}/respond-to-transfer`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ transfer_id: transferId, response: action }),
@@ -731,13 +735,13 @@ function loadTransferHistory(type) {
   let endpoint
   switch (type) {
     case "sent":
-      endpoint = `http://localhost:3000/get-sent-transfers/${currentUser.id}`
+      endpoint = `${BASE_URL}/get-sent-transfers/${currentUser.id}`
       break
     case "received":
-      endpoint = `http://localhost:3000/get-received-transfers/${currentUser.id}`
+      endpoint = `${BASE_URL}/get-received-transfers/${currentUser.id}`
       break
     case "pending":
-      endpoint = `http://localhost:3000/get-pending-transfers/${currentUser.id}`
+      endpoint = `${BASE_URL}/get-pending-transfers/${currentUser.id}`
       break
     default:
       contentElement.innerHTML = "<p class='error-text'>Invalid transfer type</p>"
@@ -866,7 +870,7 @@ function respondToTransferHistory(transferId, action) {
 
   console.log(`Responding to transfer ${transferId} with action: ${action} from history view`);
 
-  fetch("http://localhost:3000/respond-to-transfer", {
+  fetch(`${BASE_URL}/respond-to-transfer`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -945,7 +949,7 @@ function loadWalletBalanceHistory() {
 
   if (!currentUser) return
 
-  fetch(`http://localhost:3000/get-wallet-balance/${currentUser.id}`)
+  fetch(`${BASE_URL}/get-wallet-balance/${currentUser.id}`)
     .then((response) => response.json())
     .then((data) => {
       const walletBalanceElement = document.getElementById("wallet-balance")
@@ -1214,19 +1218,19 @@ function generateTransferPdf(currentUser, reportType, fromDate, toDate, loadingO
   }
   
   // Fetch wallet balance
-  fetch(`http://localhost:3000/get-wallet-balance/${currentUser.id}`)
+  fetch(`${BASE_URL}/get-wallet-balance/${currentUser.id}`)
     .then(response => response.json())
     .then(walletData => {
       // Fetch sent transfers
-      return fetch(`http://localhost:3000/get-sent-transfers/${currentUser.id}`)
+      return fetch(`${BASE_URL}/get-sent-transfers/${currentUser.id}`)
         .then(response => response.json())
         .then(sentData => {
           // Fetch received transfers
-          return fetch(`http://localhost:3000/get-received-transfers/${currentUser.id}`)
+          return fetch(`${BASE_URL}/get-received-transfers/${currentUser.id}`)
             .then(response => response.json())
             .then(receivedData => {
               // Fetch pending transfers
-              return fetch(`http://localhost:3000/get-pending-transfers/${currentUser.id}`)
+              return fetch(`${BASE_URL}/get-pending-transfers/${currentUser.id}`)
                 .then(response => response.json())
                 .then(pendingData => {
                   // Filter transfers by date if needed

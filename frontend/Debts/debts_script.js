@@ -1,7 +1,9 @@
 //------------------------------------------------------------------------------
 //<!-- Add these before your script.js file -->
 
-
+const BASE_URL = window.location.hostname === "localhost"
+  ? "http://localhost:3000"
+  : "https://penny-pilot-production.up.railway.app";
 
 //------------------------------------------------------------------------------
 
@@ -341,7 +343,7 @@ function loadDebts() {
     if (!currentUser) return;
   
     // Load debts
-    fetch(`http://localhost:3000/get-debts/${currentUser.id}`)
+    fetch(`${BASE_URL}/get-debts/${currentUser.id}`)
       .then((response) => response.json())
       .then((data) => {
         if (data.success) {
@@ -357,7 +359,7 @@ function loadDebts() {
           //----------------------------------------------------------------------------------------
           
           // Then load transactions
-          fetch(`http://localhost:3000/debt-transactions/${currentUser.id}`)
+          fetch(`${BASE_URL}/debt-transactions/${currentUser.id}`)
             .then((response) => response.json())
             .then((txnData) => {
               if (txnData.success) {
@@ -899,7 +901,7 @@ function showDebtDetails(debt) {
 
 // Function to load payment history for a debt
 function loadPaymentHistory(debtId) {
-    fetch(`http://localhost:3000/debt-transactions/${debtId}`)
+    fetch(`${BASE_URL}/debt-transactions/${debtId}`)
         .then(response => response.json())
         .then(data => {
             if (data.success && data.transactions.length > 0) {
@@ -1103,7 +1105,7 @@ function loadRecentTransactions() {
         return;
     }
 
-    fetch(`http://localhost:3000/debt-transactions/${currentUser.id}`)
+    fetch(`${BASE_URL}/debt-transactions/${currentUser.id}`)
         .then((response) => {
             if (!response.ok) {
                 throw new Error("Network response was not ok");
@@ -1241,7 +1243,7 @@ document.getElementById("save-entry")?.addEventListener("click", function() {
     };
 
     // Send data to server
-    fetch("http://localhost:3000/add-debt", {
+    fetch(`${BASE_URL}/add-debt`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
@@ -1325,7 +1327,7 @@ document.getElementById("save-debit")?.addEventListener("click", function() {
     };
 
     // Send data to server
-    fetch("http://localhost:3000/add-debt", {
+    fetch(`${BASE_URL}/add-debt`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
@@ -1373,7 +1375,7 @@ if (debtSelect && collectionAmountInput && collectionDateInput) {
         const date = collectionDateInput.value;
         if (!debtId || !date) return;
         try {
-            const res = await fetch(`http://localhost:3000/get-debt-due/${debtId}?date=${date}`);
+            const res = await fetch(`${BASE_URL}/get-debt-due/${debtId}?date=${date}`);
             const data = await res.json();
             if (data.total_due !== undefined) {
                 collectionAmountInput.value = data.total_due;
@@ -1403,7 +1405,7 @@ document.getElementById("save-collection")?.addEventListener("click", async func
     // Get backend-calculated total due for safety
     let backendTotalDue = null;
     try {
-        const res = await fetch(`http://localhost:3000/get-debt-due/${debtSelect.value}?date=${dateInput.value}`);
+        const res = await fetch(`${BASE_URL}/get-debt-due/${debtSelect.value}?date=${dateInput.value}`);
         const data = await res.json();
         backendTotalDue = data.total_due;
     } catch (e) {
@@ -1434,7 +1436,7 @@ document.getElementById("save-collection")?.addEventListener("click", async func
     document.body.classList.add('loading'); // Add a CSS class to show spinner
 
     // Send data to server
-    fetch("http://localhost:3000/collect-debt", {
+    fetch(`${BASE_URL}/collect-debt`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
