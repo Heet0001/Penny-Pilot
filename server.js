@@ -5,12 +5,6 @@ import mysql from "mysql2"
 import bodyParser from "body-parser"
 import cors from "cors"
 import fetch from 'node-fetch'
-import dotenv from 'dotenv';
-
-// Configure dotenv to look for .env in the root directory
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-dotenv.config({ path: path.resolve(__dirname, '.env') });
 
 const app = express()
 
