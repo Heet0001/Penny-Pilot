@@ -5,6 +5,12 @@ import mysql from "mysql2"
 import bodyParser from "body-parser"
 import cors from "cors"
 import fetch from 'node-fetch'
+import dotenv from 'dotenv';
+
+// Configure dotenv to look for .env in the root directory
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+dotenv.config({ path: path.resolve(__dirname, '.env') });
 
 const app = express()
 
@@ -37,10 +43,10 @@ app.use(express.static(path.join(__dirname, "public")))
 
 // MySQL connection
 const db = mysql.createConnection({
-  host: process.env.MYSQL_HOST,
-  user: process.env.MYSQL_USER,
-  password: process.env.MYSQL_PASSWORD,
-  database: process.env.MYSQL_DATABASE,
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
 });
 
 
