@@ -53,6 +53,12 @@ const db = mysql.createConnection({
 db.connect((err) => {
   if (err) {
     console.error("Error connecting to MySQL:", err)
+    console.error("Database configuration:", {
+      host: process.env.MYSQLHOST,
+      user: process.env.MYSQLUSER,
+      database: process.env.MYSQLDATABASE,
+      // Don't log the password for security
+    })
     return
   }
   console.log("MySQL connected successfully")
@@ -286,15 +292,23 @@ app.post("/signup", (req, res) => {
 
 app.post("/signin", (req, res) => {
   const { email, password } = req.body
+  
+  console.log("Attempting signin for email:", email) // Log the attempt
+
+  if (!email || !password) {
+    console.log("Missing email or password")
+    return res.status(400).json({ error: "Email and password are required" })
+  }
 
   const sql = "SELECT * FROM users WHERE email = ? AND password = ?"
   db.query(sql, [email, password], (err, results) => {
     if (err) {
-      console.error("Error during sign in:", err)
-      return res.status(500).json({ error: "An error occurred during sign in" })
+      console.error("Database error during sign in:", err)
+      return res.status(500).json({ error: "Database error occurred during sign in" })
     }
 
     if (results.length === 0) {
+      console.log("No user found with provided credentials")
       return res.status(401).json({ error: "Invalid email or password" })
     }
 
@@ -304,6 +318,7 @@ app.post("/signin", (req, res) => {
       email: results[0].email
     }
 
+    console.log("Successful signin for user:", user.email)
     res.json({ user })
   })
 })

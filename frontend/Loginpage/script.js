@@ -117,18 +117,18 @@ if (signInForm) {
         }
         
       fetch(`${BASE_URL}/signin`, {
-
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({ email, password }),
         })
-        .then(response => {
+        .then(async response => {
+            const data = await response.json();
             if (!response.ok) {
-                throw new Error('Network response was not ok');
+                throw new Error(data.error || 'Network response was not ok');
             }
-            return response.json();
+            return data;
         })
         .then(data => {
             if (data.user) {
@@ -144,7 +144,7 @@ if (signInForm) {
         })
         .catch((error) => {
             console.error('Error during login:', error);
-            alert('Login failed. Please try again.');
+            alert(error.message || 'Login failed. Please try again.');
         });
     });
 }
