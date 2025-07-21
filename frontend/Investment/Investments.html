@@ -12,6 +12,9 @@
 
     <link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.min.css">
     <link rel="stylesheet" href="investment_style.css">
+    <!-- Toastify CSS and JS -->
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
@@ -85,29 +88,42 @@
             </div>
         </div>
         
-        <div class="sidebar-menu">
+    <div class="sidebar-menu">
+        <div class="menu-section">
+            <div class="menu-section-title">OVERVIEW</div>
             <a href="../Dashboard/dashboard.html" class="menu-item">
-                <i class="fas fa-wallet"></i>
-                <span>Expenditure</span>
+                <i class="fas fa-chart-pie"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="#" class="menu-item active">
+                <i class="fas fa-trending-up"></i>
+                <span>Investments</span>
+            </a>
+        </div>
+        <div class="menu-section">
+            <div class="menu-section-title">FINANCE</div>
+            <a href="../MoneyTransfer/moneytransfer.html" class="menu-item">
+                <i class="fas fa-exchange-alt"></i>
+                <span>Money Transfer</span>
             </a>
             <a href="../Debts/debts.html" class="menu-item">
                 <i class="fas fa-hand-holding-usd"></i>
                 <span>Debts</span>
             </a>
-            <a href="#" class="menu-item active">
-                <i class="fas fa-chart-line"></i>
-                <span>Investments</span>
-            </a>
-            <a href="../MoneyTransfer/moneytransfer.html" class="menu-item">
-                <i class="fas fa-exchange-alt"></i>
-                <span>Money Transfer</span>
+        </div>
+        <div class="menu-section">
+            <div class="menu-section-title">TEAM</div>
+            <a href="../Clients/clients.html" class="menu-item">
+                <i class="fas fa-users"></i>
+                <span>Clients</span>
             </a>
         </div>
+    </div>
         
-        <button class="logout-btn">
-            <i class="fas fa-sign-out-alt"></i>
-            <span>Logout</span>
-        </button>
+    <button class="logout-btn" id="logout-btn">
+        <i class="fas fa-sign-out-alt"></i>
+        <span>Logout</span>
+    </button>
     </div>
     
     <!-- Main Content -->
@@ -115,13 +131,18 @@
         <!-- Static Content (Upper Page) -->
         <div class="static-content">
             <!-- Navbar -->
-            <div class="navbar">
-                <div></div> <!-- Empty spacer -->
+        <div class="navbar">
+            <div class="page-header">
+                <h1 class="page-title">Investments</h1>
+                <p class="page-subtitle">Manage your stock portfolio and track performance</p>
+            </div>
+            <div class="navbar-actions">
                 <div class="user-profile">
-                    <div class="user-avatar" id="user-avatar"></div>
-                    <div class="user-tooltip" id="user-tooltip"></div>
+                    <div class="user-avatar" id="profile-icon"></div>
+                    <div class="user-tooltip" id="username-tooltip"></div>
                 </div>
             </div>
+        </div>
             
             <!-- Balance Cards - Will be updated by JavaScript -->
             <div class="balance-section">
@@ -150,7 +171,7 @@
                     <div class="export-actions">
                         <button class="export-pdf-btn" id="export-pdf-btn">
                             <i class="fas fa-file-pdf"></i>
-                            <span>Export PDF</span>
+                            <span>Export Investment Report</span>
                         </button>
                     </div>
                     
@@ -347,6 +368,18 @@
                     <input type="number" id="sell-quantity" name="sell_quantity" class="form-control" min="1" required disabled>
                 </div>
                 <div class="form-group">
+                    <label for="sell-price">Sell Price (₹)</label>
+                    <div class="input-group">
+                        <input type="number" step="0.01" class="form-control" id="sell-price" placeholder="Current market price" readonly>
+                        <div class="input-group-append">
+                            <button type="button" class="btn btn-outline-secondary" id="manual-price-btn" title="Enter price manually">
+                                <i class="fas fa-edit"></i> Manual
+                            </button>
+                        </div>
+                    </div>
+                    <small class="form-text text-muted">Price will be fetched automatically or can be entered manually</small>
+                </div>
+                <div class="form-group">
                     <label for="sell-date">Sell Date</label>
                     <input type="date" id="sell-date" name="sell_date" class="form-control" required>
                 </div>
@@ -367,6 +400,49 @@
 <div id="error-message" class="error-message"></div>
 
     <script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
+    <script>
+        // Add authentication check
+        document.addEventListener('DOMContentLoaded', function() {
+            const isAuthenticated = localStorage.getItem('isAuthenticated');
+            const currentUser = localStorage.getItem('currentUser');
+            
+            if (!isAuthenticated || !currentUser) {
+                window.location.href = '../Loginpage/index.html';
+                return;
+            }
+            
+            try {
+                const user = JSON.parse(currentUser);
+                // Update user info in the UI
+                const profileIcon = document.getElementById('profile-icon');
+                const usernameTooltip = document.getElementById('username-tooltip');
+                
+                if (profileIcon && user.name) {
+                    profileIcon.textContent = user.name.charAt(0).toUpperCase();
+                }
+                if (usernameTooltip && user.name) {
+                    usernameTooltip.textContent = user.name;
+                }
+                
+                // Setup logout button
+                const logoutBtn = document.getElementById('logout-btn');
+                if (logoutBtn) {
+                    logoutBtn.addEventListener('click', function() {
+                        localStorage.removeItem('currentUser');
+                        localStorage.removeItem('isAuthenticated');
+                        window.location.href = '../Loginpage/index.html';
+                    });
+                }
+                
+            } catch (error) {
+                console.error('Error parsing user data:', error);
+                localStorage.removeItem('currentUser');
+                localStorage.removeItem('isAuthenticated');
+                window.location.href = '../Loginpage/index.html';
+            }
+        });
+    </script>
+    <script src="../utils/toastify-utils.js"></script>
     <script src="investment_script.js"></script>
     <script>
         

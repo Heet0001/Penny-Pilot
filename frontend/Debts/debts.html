@@ -11,6 +11,8 @@
     <link rel="stylesheet" href="debt_style.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="../utils/pdf-export.js"></script>
+    <!-- Toastify CSS -->
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
 
 </head>
 <body>
@@ -26,40 +28,60 @@
         </div>
         
         <div class="sidebar-menu">
-            <a href="../Dashboard/dashboard.html" class="menu-item">
-                <i class="fas fa-wallet"></i>
-                <span>Expenditure</span>
-            </a>
-            <a href="#" class="menu-item active">
-                <i class="fas fa-hand-holding-usd"></i>  
-                <span>Debts</span>
-            </a>
-            <a href="../Investment/Investments.html" class="menu-item">
-                <i class="fas fa-chart-line"></i>
-                <span>Investments</span>
-            </a>
-            <a href="../MoneyTransfer/moneytransfer.html" class="menu-item">
-                <i class="fas fa-exchange-alt"></i>
-                <span>Money Transfer</span>
-            </a>
+            <div class="menu-section">
+                <div class="menu-section-title">OVERVIEW</div>
+                <a href="../Dashboard/dashboard.html" class="menu-item">
+                    <i class="fas fa-chart-pie"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="../Investment/Investments.html" class="menu-item">
+                    <i class="fas fa-trending-up"></i>
+                    <span>Investments</span>
+                </a>
+            </div>
+            <div class="menu-section">
+                <div class="menu-section-title">FINANCE</div>
+                <a href="../MoneyTransfer/moneytransfer.html" class="menu-item">
+                    <i class="fas fa-exchange-alt"></i>
+                    <span>Money Transfer</span>
+                </a>
+                <a href="#" class="menu-item active">
+                    <i class="fas fa-hand-holding-usd"></i>
+                    <span>Debts</span>
+                </a>
+            </div>
+            <div class="menu-section">
+                <div class="menu-section-title">TEAM</div>
+                <a href="../Clients/clients.html" class="menu-item">
+                    <i class="fas fa-users"></i>
+                    <span>Clients</span>
+                </a>
+            </div>
         </div>
         
-        <button class="logout-btn">
-            <i class="fas fa-sign-out-alt"></i>
-            <span>Logout</span>
-        </button>
+        <div class="logout-container">
+            <button class="logout-btn" id="logout-btn">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Logout</span>
+            </button>
+        </div>
     </div>
     
     <!-- Main Content -->
     <div class="main-content">
         <!-- Static Content (Upper Page) -->
         <div class="static-content">
-            <!-- Navbar -->
+            <!-- Modern Navbar -->
             <div class="navbar">
-                <div></div> <!-- Empty spacer -->
-                <div class="user-profile">
-                    <div class="user-avatar" id="profile-icon"></div>
+                <div class="page-header">
+                    <h1 class="page-title">Debts</h1>
+                    <p class="page-subtitle">Manage debts given and taken with interest tracking</p>
+                </div>
+                <div class="navbar-actions">
+                    <div class="user-profile">
+                        <div class="user-avatar" id="profile-icon"></div>
                     <div class="user-tooltip" id="username-tooltip"></div>
+                    </div>
                 </div>
             </div>
             
@@ -351,6 +373,9 @@
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <script src="../utils/pdf-export.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/swiper/swiper-bundle.min.js"></script>
+    <!-- Toastify JS -->
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+    <script src="../utils/toastify-utils.js"></script>
     <script src="debts_script.js"></script>
 
 </body>

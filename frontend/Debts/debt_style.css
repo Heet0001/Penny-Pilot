@@ -483,6 +483,9 @@ body {
 .transaction-credit {
     color: var(--success);
 }
+.transaction-debit {
+    color: var(--danger);
+}
 
 .transaction-debit {
     color: var(--danger);

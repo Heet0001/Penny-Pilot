@@ -78,14 +78,14 @@ pdfExportForm.addEventListener('submit', (e) => {
     if (reportType === 'partial') {
         fromDate = pdfFromDate.value;
         toDate = pdfToDate.value;
-        if (!fromDate || !toDate) {
-            alert('Please select both start and end dates for partial report');
-            return;
-        }
-        if (new Date(fromDate) > new Date(toDate)) {
-            alert('End date must be after start date');
-            return;
-        }
+            if (!fromDate || !toDate) {
+                showToastError('📅 Please select both start and end dates for partial report');
+                return;
+            }
+            if (new Date(fromDate) > new Date(toDate)) {
+                showToastError('📅 End date must be after start date');
+                return;
+            }
     }
     generateDebtPdfReport(reportType, fromDate, toDate);
     closeModal();
@@ -179,6 +179,7 @@ const today = new Date().toISOString().split('T')[0];
 document.querySelectorAll('input[type="date"]').forEach(input => {
     input.value = today;
 });
+
 
 // Menu items
 document.querySelectorAll('.menu-item').forEach(item => {
@@ -1207,25 +1208,25 @@ document.getElementById("save-entry")?.addEventListener("click", function() {
     const descriptionInput = document.getElementById("entry-description");
 
     if (!amountInput || !startDateInput || !dueDateInput) {
-        alert("Form elements not found. Please check the HTML structure.");
+        showToastError("🔴 Form elements not found. Please check the HTML structure.");
         return;
     }
 
     if (!amountInput.value || !startDateInput.value || !dueDateInput.value) {
-        alert("Please fill in all required fields (Amount, Start Date, Due Date)!");
+        showToastWarning("⚠️ Please fill in all required fields (Amount, Start Date, Due Date)!");
         return;
     }
 
     // Validate dates
     if (new Date(dueDateInput.value) <= new Date(startDateInput.value)) {
-        alert("Due date must be after the start date!");
+        showToastError("📅 Due date must be after the start date!");
         return;
     }
 
     // Get current user
     const currentUser = getCurrentUser();
     if (!currentUser || !currentUser.id) {
-        alert("User not logged in. Please log in again.");
+        showToastError("🔒 User not logged in. Please log in again.");
         return;
     }
 
@@ -1258,7 +1259,7 @@ document.getElementById("save-entry")?.addEventListener("click", function() {
         })
         .then((data) => {
             console.log("Debt Received Successfully:", data);
-            alert("Debt received successfully!");
+            showToastSuccess("💰 Debt received successfully!");
 
             // Update wallet balance locally
             updateWalletBalanceLocal(amountInput.value, true);
@@ -1277,7 +1278,7 @@ document.getElementById("save-entry")?.addEventListener("click", function() {
         })
         .catch((error) => {
             console.error("Error saving debt entry:", error);
-            alert("Failed to save debt entry. Please try again.");
+            showToastError("❌ Failed to save debt entry. Please try again.");
         });
 });
 
@@ -1291,25 +1292,25 @@ document.getElementById("save-debit")?.addEventListener("click", function() {
     const descriptionInput = document.getElementById("debit-description");
 
     if (!amountInput || !startDateInput || !dueDateInput) {
-        alert("Form elements not found. Please check the HTML structure.");
+        showToastError("🔴 Form elements not found. Please check the HTML structure.");
         return;
     }
 
     if (!amountInput.value || !startDateInput.value || !dueDateInput.value) {
-        alert("Please fill in all required fields (Amount, Start Date, Due Date)!");
+        showToastWarning("⚠️ Please fill in all required fields (Amount, Start Date, Due Date)!");
         return;
     }
 
     // Validate dates
     if (new Date(dueDateInput.value) <= new Date(startDateInput.value)) {
-        alert("Due date must be after the start date!");
+        showToastError("📅 Due date must be after the start date!");
         return;
     }
 
     // Get current user
     const currentUser = getCurrentUser();
     if (!currentUser || !currentUser.id) {
-        alert("User not logged in. Please log in again.");
+        showToastError("🔒 User not logged in. Please log in again.");
         return;
     }
 
@@ -1342,7 +1343,7 @@ document.getElementById("save-debit")?.addEventListener("click", function() {
         })
         .then((data) => {
             console.log("Debt Given Successfully:", data);
-            alert("Debt given successfully!");
+            showToastSuccess("💸 Debt given successfully!");
 
             // Update wallet balance locally
             updateWalletBalanceLocal(amountInput.value, false);
@@ -1361,7 +1362,7 @@ document.getElementById("save-debit")?.addEventListener("click", function() {
         })
         .catch((error) => {
             console.error("Error saving debt entry:", error);
-            alert("Failed to save debt entry. Please try again.");
+            showToastError("❌ Failed to save debt entry. Please try again.");
         });
 });
 
@@ -1398,7 +1399,7 @@ document.getElementById("save-collection")?.addEventListener("click", async func
     const descriptionInput = document.getElementById("collection-description");
 
     if (!debtSelect.value || !amountInput.value || !dateInput.value) {
-        alert("Please fill in all required fields!");
+        showToastWarning("⚠️ Please fill in all required fields!");
         return;
     }
 
@@ -1409,17 +1410,17 @@ document.getElementById("save-collection")?.addEventListener("click", async func
         const data = await res.json();
         backendTotalDue = data.total_due;
     } catch (e) {
-        alert('Error fetching total due from backend. Please try again.');
+        showToastError('❌ Error fetching total due from backend. Please try again.');
         return;
     }
 
     const amount = parseFloat(amountInput.value);
     if (amount <= 0) {
-        alert("Amount must be greater than zero!");
+        showToastWarning("💵 Amount must be greater than zero!");
         return;
     }
     if (backendTotalDue !== null && amount > parseFloat(backendTotalDue)) {
-        alert("Amount cannot exceed the total due (principal + interest)!");
+        showToastError("⚠️ Amount cannot exceed the total due (principal + interest)!");
         amountInput.value = backendTotalDue;
         return;
     }
@@ -1450,7 +1451,7 @@ document.getElementById("save-collection")?.addEventListener("click", async func
             return response.json();
         })
         .then((data) => {
-            alert("Debt collection/payment processed successfully!");
+            showToastSuccess("🚀 Debt collection/payment processed successfully!");
             // Do not update wallet balance locally; always reload from backend
             // Reset form fields
             debtSelect.value = "";
@@ -1464,7 +1465,7 @@ document.getElementById("save-collection")?.addEventListener("click", async func
         })
         .catch((error) => {
             // Show a user-friendly error message
-            alert("Transaction occured Successfully. Please refresh the page to see the changes.");
+            showToastSuccess("✅ Transaction occurred Successfully. Please refresh the page to see the changes.");
             // Log the technical error for debugging
             console.error('Error in collect/return debt:', error);
         })
@@ -1482,6 +1483,7 @@ document.addEventListener("DOMContentLoaded", function() {
     const currentUser = getCurrentUser();
     if (currentUser) {
         updateProfileIcon(currentUser);
+        showToastInfo("🎆 Welcome to Debt Management! Loading your debt data...");
     }if (exportPdfBtn) {
         exportPdfBtn.addEventListener('click', () => showModal('pdf-export-modal'));
     }
@@ -1510,12 +1512,12 @@ document.addEventListener("DOMContentLoaded", function() {
               toDate = pdfToDate.value;
           
               if (!fromDate || !toDate) {
-                alert("Please select both start and end dates for partial report");
+                showToastError("📅 Please select both start and end dates for partial report");
                 return;
               }
           
               if (new Date(fromDate) > new Date(toDate)) {
-                alert("End date must be after start date");
+                showToastError("📅 End date must be after start date");
                 return;
               }
             }
@@ -1670,7 +1672,7 @@ function updateDebtDetails(debt) {
 function showCollectDebtModal() {
     // Make sure debts are loaded
     if (!window.loadedDebts) {
-        alert("Debt data not loaded yet. Please wait...");
+        showToastInfo("⏳ Debt data not loaded yet. Please wait...");
         return;
     }
 

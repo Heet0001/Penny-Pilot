@@ -30,6 +30,7 @@ const debtsDir = path.join(__dirname, "frontend/Debts")
 const investmentDir = path.join(__dirname, "frontend/Investment")
 const moneyTransferDir = path.join(__dirname, "frontend/MoneyTransfer")
 const utilsDir = path.join(__dirname, "frontend/utils")
+const clientsDir = path.join(__dirname, "frontend/Clients")
 
 
 // Serve static files from different directories
@@ -39,30 +40,46 @@ app.use("/Debts", express.static(debtsDir))
 app.use("/Investment", express.static(investmentDir))
 app.use("/MoneyTransfer", express.static(moneyTransferDir))
 app.use("/utils", express.static(utilsDir)) // Serve utils directory
+app.use("/Clients", express.static(clientsDir)) // Serve clients directory
 app.use(express.static(path.join(__dirname, "public")))
 
-// MySQL connection
-const db = mysql.createConnection({
+// MySQL connection pool
+const db = mysql.createPool({
   host: process.env.MYSQLHOST,
   user: process.env.MYSQLUSER,
   password: process.env.MYSQLPASSWORD,
   database: process.env.MYSQLDATABASE,
+  waitForConnections: true,
+  connectionLimit: 10,
+  queueLimit: 0,
+  enableKeepAlive: true,
+  keepAliveInitialDelay: 0
 });
 
-
-db.connect((err) => {
+// Test the connection
+db.getConnection((err, connection) => {
   if (err) {
-    console.error("Error connecting to MySQL:", err)
+    console.error("Error connecting to MySQL:", err);
     console.error("Database configuration:", {
       host: process.env.MYSQLHOST,
       user: process.env.MYSQLUSER,
       database: process.env.MYSQLDATABASE,
-      // Don't log the password for security
-    })
-    return
+    });
+    return;
   }
-  console.log("MySQL connected successfully")
-})
+  console.log("MySQL connected successfully");
+  connection.release();
+});
+
+// Handle connection errors
+db.on('error', (err) => {
+  console.error('Database error:', err);
+  if (err.code === 'PROTOCOL_CONNECTION_LOST' || 
+      err.code === 'ECONNRESET' || 
+      err.code === 'PROTOCOL_ENQUEUE_AFTER_FATAL_ERROR') {
+    console.log('Attempting to reconnect to database...');
+  }
+});
 
 // Protected Routes - Add authentication check middleware
 const checkAuth = (req, res, next) => {
@@ -71,7 +88,7 @@ const checkAuth = (req, res, next) => {
   const sessionData = req.headers['x-session-data'];
   
   if (!authHeader && !sessionData) {
-    return res.redirect('/Loginpage/index.html');
+    return res.status(401).json({ error: 'Authentication required' });
   }
 
   try {
@@ -88,13 +105,11 @@ const checkAuth = (req, res, next) => {
     req.user = user;
     next();
   } catch (error) {
-    return res.redirect('/Loginpage/index.html');
+    return res.status(401).json({ error: 'Invalid authentication data' });
   }
 }
 
-// Apply authentication check to protected routes
-app.use("/dashboard", checkAuth);
-app.use("/Dashboard", checkAuth);
+// Apply authentication check to protected API routes
 app.use("/add-credit", checkAuth);
 app.use("/add-debit", checkAuth);
 app.use("/add-emergency", checkAuth);
@@ -183,26 +198,92 @@ function updateEmergencyFundBalance(userId, amount, operation, callback) {
 app.get("/api/stock-price/:symbol", async (req, res) => {
   try {
     const symbol = req.params.symbol.toUpperCase();
-    const response = await fetch(
-      `https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=${symbol}.BSE&apikey=${ALPHA_VANTAGE_API_KEY}`
-    );
-
-    if (!response.ok) {
-      throw new Error('Failed to fetch stock price');
-    }
-
-    const data = await response.json();
     
-    if (data['Global Quote'] && data['Global Quote']['05. price']) {
-      res.json({ price: data['Global Quote']['05. price'] });
-    } else {
-      res.status(404).json({ error: 'Stock price not available' });
+    // Try to fetch from Alpha Vantage first
+    if (ALPHA_VANTAGE_API_KEY && ALPHA_VANTAGE_API_KEY !== 'your_alpha_vantage_api_key_here') {
+      try {
+        const alphaVantageUrl = `https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=${symbol}&apikey=${ALPHA_VANTAGE_API_KEY}`;
+        
+        const response = await fetch(alphaVantageUrl);
+        const data = await response.json();
+        
+        // Check if API returned valid data
+        if (data['Global Quote'] && data['Global Quote']['05. price']) {
+          const price = parseFloat(data['Global Quote']['05. price']);
+          return res.json({
+            price: price,
+            symbol: symbol,
+            timestamp: new Date().toISOString(),
+            source: 'alphavantage'
+          });
+        }
+        
+        // If Alpha Vantage fails or returns error, fall back to mock
+        console.log('Alpha Vantage response:', data);
+        
+      } catch (alphaError) {
+        console.error('Alpha Vantage API error:', alphaError);
+      }
     }
+    
+    // Fallback to mock price if Alpha Vantage fails or API key not configured
+    const mockPrice = generateMockPrice(symbol);
+    
+    res.json({ 
+      price: mockPrice,
+      symbol: symbol,
+      timestamp: new Date().toISOString(),
+      source: 'mock',
+      note: 'Using mock data. Configure ALPHA_VANTAGE_API_KEY for real prices.'
+    });
+    
   } catch (error) {
     console.error('Error fetching stock price:', error);
     res.status(500).json({ error: 'Failed to fetch stock price' });
   }
 });
+
+// Generate a realistic mock price for testing
+function generateMockPrice(symbol) {
+  // Common Indian stock symbols with realistic base prices
+  const stockPrices = {
+    'RELIANCE': 2800,
+    'TCS': 3600,
+    'INFY': 1450,
+    'HDFCBANK': 1650,
+    'ICICIBANK': 950,
+    'ITC': 420,
+    'SBIN': 580,
+    'BHARTIARTL': 850,
+    'ASIANPAINT': 3200,
+    'MARUTI': 9800,
+    'WIPRO': 420,
+    'TECHM': 1200,
+    'ULTRACEMCO': 8500,
+    'TITAN': 3100,
+    'POWERGRID': 220,
+    'NESTLEIND': 21000,
+    'HCLTECH': 1180,
+    'BAJFINANCE': 6800,
+    'COALINDIA': 280,
+    'NTPC': 180
+  };
+  
+  // Check if it's a known stock symbol
+  let basePrice = stockPrices[symbol.toUpperCase()];
+  
+  if (!basePrice) {
+    // Generate price based on symbol hash for unknown stocks
+    const hash = symbol.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+    basePrice = (hash % 1000) + 100; // Price between 100-1100
+  }
+  
+  // Add small random variation (±2%)
+  const variation = (Math.random() - 0.5) * 0.04; // ±2%
+  const finalPrice = basePrice * (1 + variation);
+  
+  return Number(finalPrice.toFixed(2));
+}
 
 // Routes
 // Basic Navigation Routes - FIXED
@@ -237,11 +318,15 @@ app.get("/Debts/debts.html", (req, res) => {
 })
 
 app.get("/investment", (req, res) => {
-  res.sendFile(path.join(investmentDir, "investment.html"))
+  res.sendFile(path.join(investmentDir, "Investments.html"))
 })
 
 app.get("/Investment/investment.html", (req, res) => {
-  res.sendFile(path.join(investmentDir, "investment.html"))
+  res.sendFile(path.join(investmentDir, "Investments.html"))
+})
+
+app.get("/Investment/Investments.html", (req, res) => {
+  res.sendFile(path.join(investmentDir, "Investments.html"))
 })
 
 app.get("/money-transfer", (req, res) => {
@@ -250,6 +335,18 @@ app.get("/money-transfer", (req, res) => {
 
 app.get("/MoneyTransfer/money-transfer.html", (req, res) => {
   res.sendFile(path.join(moneyTransferDir, "money-transfer.html"))
+})
+
+app.get("/clients", (req, res) => {
+  res.sendFile(path.join(clientsDir, "clients.html"))
+})
+
+app.get("/Clients/clients.html", (req, res) => {
+  res.sendFile(path.join(clientsDir, "clients.html"))
+})
+
+app.get("/client-management", (req, res) => {
+  res.sendFile(path.join(clientsDir, "clients.html"))
 })
 
 
@@ -293,34 +390,45 @@ app.post("/signup", (req, res) => {
 app.post("/signin", (req, res) => {
   const { email, password } = req.body
   
-  console.log("Attempting signin for email:", email) // Log the attempt
+  console.log("Attempting signin for email:", email)
 
   if (!email || !password) {
     console.log("Missing email or password")
     return res.status(400).json({ error: "Email and password are required" })
   }
 
-  const sql = "SELECT * FROM users WHERE email = ? AND password = ?"
-  db.query(sql, [email, password], (err, results) => {
+  // Get a connection from the pool
+  db.getConnection((err, connection) => {
     if (err) {
-      console.error("Database error during sign in:", err)
-      return res.status(500).json({ error: "Database error occurred during sign in" })
+      console.error("Error getting connection from pool:", err);
+      return res.status(500).json({ error: "Database connection error" });
     }
 
-    if (results.length === 0) {
-      console.log("No user found with provided credentials")
-      return res.status(401).json({ error: "Invalid email or password" })
-    }
+    const sql = "SELECT * FROM users WHERE email = ? AND password = ?"
+    connection.query(sql, [email, password], (err, results) => {
+      // Release the connection back to the pool
+      connection.release();
 
-    const user = {
-      id: results[0].id,
-      name: results[0].name,
-      email: results[0].email
-    }
+      if (err) {
+        console.error("Database error during sign in:", err)
+        return res.status(500).json({ error: "Database error occurred during sign in" })
+      }
 
-    console.log("Successful signin for user:", user.email)
-    res.json({ user })
-  })
+      if (results.length === 0) {
+        console.log("No user found with provided credentials")
+        return res.status(401).json({ error: "Invalid email or password" })
+      }
+
+      const user = {
+        id: results[0].id,
+        name: results[0].name,
+        email: results[0].email
+      }
+
+      console.log("Successful signin for user:", user.email)
+      res.json({ user })
+    });
+  });
 })
 
 // LOGOUT ROUTE
@@ -694,115 +802,270 @@ router.post("/buy-stock", async (req, res) => {
   })
 })
 
-router.post("/sell-stock", async (req, res) => {
-  const { user_id, investment_id, sell_price, sell_quantity, sell_date, partial_sale } = req.body
+router.post("/sell-stock", (req, res) => {
+  const { user_id, investment_id, sell_price, sell_quantity, sell_date, partial_sale } = req.body;
 
+  // Validate required fields
   if (!user_id || !investment_id || !sell_price || !sell_quantity || !sell_date) {
     return res.status(400).json({
       success: false,
       message: "Missing required fields",
-    })
+    });
   }
 
-  db.beginTransaction(async (err) => {
-    if (err) {
-      console.error("Error starting transaction:", err)
+  // Validate numeric values
+  const sellPrice = Number(sell_price);
+  const sellQuantity = Number(sell_quantity);
+  
+  if (isNaN(sellPrice) || isNaN(sellQuantity) || sellPrice <= 0 || sellQuantity <= 0) {
+    return res.status(400).json({
+      success: false,
+      message: "Invalid price or quantity",
+    });
+  }
+
+  console.log(`[SELL-STOCK] Processing sell request for user ${user_id}, investment ${investment_id}`);
+
+  // Get investment details
+  const getInvestmentQuery = "SELECT * FROM stock_investments WHERE id = ? AND user_id = ? AND status = 'active'";
+  db.query(getInvestmentQuery, [investment_id, user_id], (investmentErr, investmentResults) => {
+    if (investmentErr) {
+      console.error("Error fetching investment:", investmentErr);
       return res.status(500).json({
         success: false,
-        message: "Database error",
-      })
+        message: "Database error fetching investment",
+      });
     }
 
-    try {
-      const [investment] = await db
-        .promise()
-        .query("SELECT * FROM stock_investments WHERE id = ? AND user_id = ? FOR UPDATE", [investment_id, user_id])
+    if (investmentResults.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "Investment not found or already sold",
+      });
+    }
 
-      if (!investment || investment.length === 0) {
-        throw new Error("Investment not found")
+    const currentInvestment = investmentResults[0];
+    
+    // Validate quantity
+    if (sellQuantity > currentInvestment.quantity) {
+      return res.status(400).json({
+        success: false,
+        message: `Cannot sell more shares than owned. You own ${currentInvestment.quantity} shares.`,
+      });
+    }
+
+    const totalSaleAmount = sellPrice * sellQuantity;
+    const buyAmount = Number(currentInvestment.buy_price) * sellQuantity;
+    const profit = totalSaleAmount - buyAmount;
+    const remainingQuantity = currentInvestment.quantity - sellQuantity;
+
+    console.log(`[SELL-STOCK] Selling ${sellQuantity} shares at ₹${sellPrice} each. Total: ₹${totalSaleAmount}`);
+
+    // Determine if this is a partial sale
+    const isPartialSale = remainingQuantity > 0;
+
+    let updateQuery;
+    let updateParams;
+
+    if (isPartialSale) {
+      // Partial sale - update quantity and current price
+      updateQuery = "UPDATE stock_investments SET quantity = ?, current_price = ? WHERE id = ?";
+      updateParams = [remainingQuantity, sellPrice, investment_id];
+    } else {
+      // Full sale - mark as sold
+      updateQuery = "UPDATE stock_investments SET status = 'sold', sell_price = ?, sell_date = ?, current_price = ? WHERE id = ?";
+      updateParams = [sellPrice, sell_date, sellPrice, investment_id];
+    }
+
+    // Update the investment
+    db.query(updateQuery, updateParams, (updateErr) => {
+      if (updateErr) {
+        console.error("Error updating investment:", updateErr);
+        return res.status(500).json({
+          success: false,
+          message: "Failed to update investment",
+        });
       }
 
-      const currentInvestment = investment[0]
-
-      if (currentInvestment.status === "sold") {
-        throw new Error("Investment already sold")
-      }
-
-      if (sell_quantity > currentInvestment.quantity) {
-        throw new Error("Cannot sell more shares than owned")
-      }
-
-      const totalSaleAmount = Number(sell_price) * Number(sell_quantity)
-      const buyAmount = Number(currentInvestment.buy_price) * Number(sell_quantity)
-      const profit = totalSaleAmount - buyAmount
-
-      if (partial_sale) {
-        const remainingQuantity = currentInvestment.quantity - sell_quantity
-
-        await db
-          .promise()
-          .query("UPDATE stock_investments SET quantity = ?, current_price = ? WHERE id = ?", [
-            remainingQuantity,
-            sell_price,
-            investment_id,
-          ])
-
-        await db.promise().query(
-          `INSERT INTO stock_investments 
-          (user_id, stock_name, buy_price, current_price, quantity, buy_date, sell_price, sell_date, status, description) 
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'sold', ?)`,
-          [
+      // For partial sales, create a new sold record
+      const createSoldRecord = (cb) => {
+        if (isPartialSale) {
+          const soldRecordQuery = `
+            INSERT INTO stock_investments 
+            (user_id, stock_name, buy_price, current_price, quantity, buy_date, sell_price, sell_date, status, description) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'sold', ?)`;
+          
+          const soldRecordParams = [
             user_id,
             currentInvestment.stock_name,
             currentInvestment.buy_price,
-            sell_price,
-            sell_quantity,
+            sellPrice,
+            sellQuantity,
             currentInvestment.buy_date,
-            sell_price,
+            sellPrice,
             sell_date,
-            currentInvestment.description,
-          ],
-        )
-      } else {
-        await db.promise().query(
-          `UPDATE stock_investments 
-          SET status = 'sold', sell_price = ?, sell_date = ?, current_price = ? 
-          WHERE id = ?`,
-          [sell_price, sell_date, sell_price, investment_id],
-        )
+            currentInvestment.description || `Partial sale of ${currentInvestment.stock_name}`
+          ];
+
+          db.query(soldRecordQuery, soldRecordParams, (soldErr) => {
+            if (soldErr) {
+              console.error("Error creating sold record:", soldErr);
+              return res.status(500).json({
+                success: false,
+                message: "Failed to create sold record",
+              });
+            }
+            cb();
+          });
+        } else {
+          cb();
+        }
+      };
+
+      createSoldRecord(() => {
+        // Update wallet balance
+        const walletUpdateQuery = "UPDATE wallet SET balance = balance + ? WHERE user_id = ?";
+        db.query(walletUpdateQuery, [totalSaleAmount, user_id], (walletErr) => {
+          if (walletErr) {
+            console.error("Error updating wallet:", walletErr);
+            return res.status(500).json({
+              success: false,
+              message: "Failed to update wallet balance",
+            });
+          }
+
+          // Create credit entry
+          const creditEntryQuery = `
+            INSERT INTO credit_entries (user_id, amount, category, entry_date, description) 
+            VALUES (?, ?, 'Investments Relieved', ?, ?)`;
+          const creditDescription = `Sold ${sellQuantity} shares of ${currentInvestment.stock_name} @ ₹${sellPrice.toFixed(2)} each`;
+          db.query(creditEntryQuery, [user_id, totalSaleAmount, sell_date, creditDescription], (creditErr) => {
+            if (creditErr) {
+              console.error("Error creating credit entry:", creditErr);
+              return res.status(500).json({
+                success: false,
+                message: "Failed to create credit entry",
+              });
+            }
+
+            // Success response
+            console.log(`[SELL-STOCK] Successfully sold ${sellQuantity} shares of ${currentInvestment.stock_name}`);
+            res.status(200).json({
+              success: true,
+              message: "Stock sold successfully",
+              data: {
+                total_sale_amount: totalSaleAmount,
+                profit: profit,
+                remaining_quantity: remainingQuantity,
+                stock_name: currentInvestment.stock_name,
+                sell_price: sellPrice,
+                sell_quantity: sellQuantity,
+                is_partial_sale: isPartialSale
+              }
+            });
+          });
+        });
+      });
+    });
+  });
+})
+
+router.get("/api/get-investments/:userId", async (req, res) => {
+  const userId = req.params.userId
+
+  if (!userId) {
+    return res.status(400).json({ error: "User ID is required" })
+  }
+
+  const query = "SELECT * FROM stock_investments WHERE user_id = ? ORDER BY buy_date DESC"
+
+  db.query(query, [userId], async (err, results) => {
+    if (err) {
+      console.error("Error getting investments:", err)
+      return res.status(500).json({ error: "Database error" })
+    }
+
+    const updatedInvestments = []
+    let totalInvested = 0
+    let totalCurrentValue = 0
+
+    for (const investment of results) {
+      const investedAmount = Number(investment.buy_price) * Number(investment.quantity)
+
+      if (investment.status === "active") {
+        try {
+          // Ensure .BSE is appended if not present
+          let symbol = investment.stock_name.toUpperCase();
+          if (!symbol.endsWith('.BSE') && !symbol.endsWith('.NSE')) {
+            symbol = symbol + '.BSE';
+          }
+          // Fetch real-time stock price from Alpha Vantage API
+          const response = await fetch(
+            `https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=${symbol}&apikey=${ALPHA_VANTAGE_API_KEY}`
+          );
+
+          if (!response.ok) {
+            throw new Error('Failed to fetch stock price');
+          }
+
+          const data = await response.json();
+          let currentPrice;
+
+          if (data['Global Quote'] && data['Global Quote']['05. price']) {
+            currentPrice = Number(data['Global Quote']['05. price']);
+            // Update the current_price in the database
+            await db.promise().query(
+              "UPDATE stock_investments SET current_price = ? WHERE id = ?",
+              [currentPrice, investment.id]
+            );
+          } else {
+            // If API fails, use the last known price
+            currentPrice = Number(investment.current_price);
+          }
+
+          const currentValue = currentPrice * Number(investment.quantity);
+          totalInvested += investedAmount;
+          totalCurrentValue += currentValue;
+
+          investment.current_price = currentPrice;
+          investment.invested_amount = investedAmount;
+          investment.current_value = currentValue;
+          investment.profit_loss = currentValue - investedAmount;
+          investment.profit_loss_percentage = (((currentValue - investedAmount) / investedAmount) * 100).toFixed(2);
+        } catch (error) {
+          console.error(`Error fetching price for ${investment.stock_name}:`, error);
+          // Use last known price if API fails
+          const currentValue = Number(investment.current_price) * Number(investment.quantity);
+          totalInvested += investedAmount;
+          totalCurrentValue += currentValue;
+
+          investment.invested_amount = investedAmount;
+          investment.current_value = currentValue;
+          investment.profit_loss = currentValue - investedAmount;
+          investment.profit_loss_percentage = (((currentValue - investedAmount) / investedAmount) * 100).toFixed(2);
+        }
+      } else if (investment.status === "sold") {
+        const saleAmount = Number(investment.sell_price) * Number(investment.quantity);
+        investment.invested_amount = investedAmount;
+        investment.sale_amount = saleAmount;
+        investment.profit_loss = saleAmount - investedAmount;
+        investment.profit_loss_percentage = (((saleAmount - investedAmount) / investedAmount) * 100).toFixed(2);
       }
 
-      await db.promise().query("UPDATE wallet SET balance = balance + ? WHERE user_id = ?", [totalSaleAmount, user_id])
-
-      await db.promise().query(
-        `INSERT INTO credit_entries (user_id, amount, category, entry_date, description) 
-        VALUES (?, ?, 'Investments Relieved', ?, ?)`,
-        [
-          user_id,
-          totalSaleAmount,
-          sell_date,
-          `Sold ${sell_quantity} shares of ${currentInvestment.stock_name} @ ₹${sell_price}`,
-        ],
-      )
-
-      await db.promise().commit()
-
-      res.status(200).json({
-        success: true,
-        message: "Stock sold successfully",
-        total_sale_amount: totalSaleAmount,
-        profit: profit,
-        remaining_quantity: partial_sale ? currentInvestment.quantity - sell_quantity : 0,
-      })
-    } catch (error) {
-      await db.promise().rollback()
-      console.error("Error in sell stock transaction:", error)
-      res.status(400).json({
-        success: false,
-        message: error.message || "Failed to sell stock",
-      })
+      updatedInvestments.push(investment);
     }
-  })
+
+    res.json({
+      investments: updatedInvestments,
+      summary: {
+        total_invested: totalInvested,
+        total_current_value: totalCurrentValue,
+        total_profit_loss: totalCurrentValue - totalInvested,
+        total_profit_loss_percentage:
+          totalInvested > 0 ? (((totalCurrentValue - totalInvested) / totalInvested) * 100).toFixed(2) : 0,
+      },
+    });
+  });
 })
 
 router.get("/get-investments/:userId", async (req, res) => {
@@ -908,20 +1171,516 @@ router.get("/get-stock-price/:stockName", async (req, res) => {
 
   try {
     const mockPrice = generateMockPrice(stockName)
-    res.json({ price: mockPrice })
+    res.json({ 
+      price: mockPrice,
+      symbol: stockName,
+      timestamp: new Date().toISOString(),
+      source: 'mock'
+    })
   } catch (error) {
     console.error("Error fetching stock price:", error)
     res.status(500).json({ error: "Failed to fetch stock price" })
   }
 })
 
-function generateMockPrice(stockName) {
-  const basePrice = stockName.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0)
-  const randomFactor = Math.sin(Date.now() / 10000) * 10
-  return (basePrice + randomFactor).toFixed(2)
-}
+// Health check endpoint
+app.get('/health', (req, res) => {
+  res.json({
+    status: 'healthy',
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime()
+  });
+});
 
 app.use("/api", router)
+
+// ============================
+// CLIENT MANAGEMENT ERP MODULE
+// ============================
+
+// Client Routes
+
+// Get all clients for a user
+app.get('/api/clients', checkAuth, (req, res) => {
+  const userId = req.user.id;
+  
+  // For development, we'll use the customers table from the ERP database
+  const query = `
+    SELECT c.*, 
+           COALESCE(SUM(CASE WHEN ct.transaction_type = 'income' THEN ct.amount ELSE 0 END), 0) as revenue_collected,
+           COALESCE(SUM(CASE WHEN ct.transaction_type = 'expense' THEN ct.amount ELSE 0 END), 0) as total_expenses,
+           COALESCE(SUM(CASE WHEN ct.transaction_type = 'income' THEN ct.amount ELSE 0 END), 0) - 
+           COALESCE(SUM(CASE WHEN ct.transaction_type = 'expense' THEN ct.amount ELSE 0 END), 0) as total_revenue,
+           COUNT(CASE WHEN i.status IN ('draft', 'sent') THEN 1 END) as pending_invoices
+    FROM customers c
+    LEFT JOIN client_transactions ct ON c.id = ct.client_id
+    LEFT JOIN invoices i ON c.id = i.client_id
+    WHERE c.created_by = ?
+    GROUP BY c.id
+    ORDER BY c.created_at DESC
+  `;
+  
+  db.query(query, [userId], (err, results) => {
+    if (err) {
+      console.error('Error fetching clients:', err);
+      return res.status(500).json({ error: 'Database error' });
+    }
+    
+    res.json({
+      success: true,
+      clients: results
+    });
+  });
+});
+
+// Create new client
+app.post('/api/clients', checkAuth, (req, res) => {
+  const userId = req.user.id;
+  const {
+    customer_type,
+    first_name,
+    last_name,
+    company_name,
+    email,
+    phone,
+    address,
+    city,
+    state,
+    postal_code,
+    country,
+    customer_status,
+    credit_limit,
+    payment_terms,
+    notes
+  } = req.body;
+  
+  // Validate required fields
+  if (!customer_type || !email || !phone) {
+    return res.status(400).json({ error: 'Missing required fields' });
+  }
+  
+  if (customer_type === 'business' && !company_name) {
+    return res.status(400).json({ error: 'Company name is required for business clients' });
+  }
+  
+  if (customer_type === 'individual' && (!first_name || !last_name)) {
+    return res.status(400).json({ error: 'First name and last name are required for individual clients' });
+  }
+  
+  // Check if email already exists
+  db.query('SELECT id FROM customers WHERE email = ?', [email], (err, existing) => {
+    if (err) {
+      console.error('Error checking existing email:', err);
+      return res.status(500).json({ error: 'Database error' });
+    }
+    
+    if (existing.length > 0) {
+      return res.status(400).json({ error: 'Email already exists' });
+    }
+    
+    const insertQuery = `
+      INSERT INTO customers (
+        customer_type, first_name, last_name, company_name, email, phone, 
+        address, city, state, postal_code, country, customer_status, 
+        credit_limit, payment_terms, notes, created_by
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `;
+    
+    const values = [
+      customer_type,
+      first_name || null,
+      last_name || null,
+      company_name || null,
+      email,
+      phone,
+      address || null,
+      city || null,
+      state || null,
+      postal_code || null,
+      country || 'India',
+      customer_status || 'prospect',
+      credit_limit || 0,
+      payment_terms || null,
+      notes || null,
+      userId
+    ];
+    
+    db.query(insertQuery, values, (err, result) => {
+      if (err) {
+        console.error('Error creating client:', err);
+        return res.status(500).json({ error: 'Database error' });
+      }
+      
+      res.status(201).json({
+        success: true,
+        message: 'Client created successfully',
+        client_id: result.insertId
+      });
+    });
+  });
+});
+
+// Update client
+app.put('/api/clients/:id', checkAuth, (req, res) => {
+  const userId = req.user.id;
+  const clientId = req.params.id;
+  const {
+    customer_type,
+    first_name,
+    last_name,
+    company_name,
+    email,
+    phone,
+    address,
+    city,
+    state,
+    postal_code,
+    country,
+    customer_status,
+    credit_limit,
+    payment_terms,
+    notes
+  } = req.body;
+  
+  // Validate required fields
+  if (!customer_type || !email || !phone) {
+    return res.status(400).json({ error: 'Missing required fields' });
+  }
+  
+  // Check if client exists and belongs to user
+  db.query('SELECT id FROM customers WHERE id = ? AND created_by = ?', [clientId, userId], (err, existing) => {
+    if (err) {
+      console.error('Error checking client ownership:', err);
+      return res.status(500).json({ error: 'Database error' });
+    }
+    
+    if (existing.length === 0) {
+      return res.status(404).json({ error: 'Client not found' });
+    }
+    
+    const updateQuery = `
+      UPDATE customers SET 
+        customer_type = ?, first_name = ?, last_name = ?, company_name = ?, 
+        email = ?, phone = ?, address = ?, city = ?, state = ?, postal_code = ?, 
+        country = ?, customer_status = ?, credit_limit = ?, payment_terms = ?, 
+        notes = ?, updated_at = CURRENT_TIMESTAMP
+      WHERE id = ? AND created_by = ?
+    `;
+    
+    const values = [
+      customer_type,
+      first_name || null,
+      last_name || null,
+      company_name || null,
+      email,
+      phone,
+      address || null,
+      city || null,
+      state || null,
+      postal_code || null,
+      country || 'India',
+      customer_status || 'prospect',
+      credit_limit || 0,
+      payment_terms || null,
+      notes || null,
+      clientId,
+      userId
+    ];
+    
+    db.query(updateQuery, values, (err, result) => {
+      if (err) {
+        console.error('Error updating client:', err);
+        return res.status(500).json({ error: 'Database error' });
+      }
+      
+      res.json({
+        success: true,
+        message: 'Client updated successfully'
+      });
+    });
+  });
+});
+
+// Delete client
+app.delete('/api/clients/:id', checkAuth, (req, res) => {
+  const userId = req.user.id;
+  const clientId = req.params.id;
+  
+  // Check if client exists and belongs to user
+  db.query('SELECT id FROM customers WHERE id = ? AND created_by = ?', [clientId, userId], (err, existing) => {
+    if (err) {
+      console.error('Error checking client ownership:', err);
+      return res.status(500).json({ error: 'Database error' });
+    }
+    
+    if (existing.length === 0) {
+      return res.status(404).json({ error: 'Client not found' });
+    }
+    
+    db.query('DELETE FROM customers WHERE id = ? AND created_by = ?', [clientId, userId], (err, result) => {
+      if (err) {
+        console.error('Error deleting client:', err);
+        return res.status(500).json({ error: 'Database error' });
+      }
+      
+      res.json({
+        success: true,
+        message: 'Client deleted successfully'
+      });
+    });
+  });
+});
+
+// Client Transactions
+
+// Create client transaction
+app.post('/api/client-transactions', checkAuth, (req, res) => {
+  const userId = req.user.id;
+  const {
+    client_id,
+    transaction_type,
+    amount,
+    description,
+    transaction_date
+  } = req.body;
+  
+  if (!client_id || !transaction_type || !amount || !description || !transaction_date) {
+    return res.status(400).json({ error: 'Missing required fields' });
+  }
+  
+  // Verify client belongs to user
+  db.query('SELECT id FROM customers WHERE id = ? AND created_by = ?', [client_id, userId], (err, client) => {
+    if (err) {
+      console.error('Error verifying client:', err);
+      return res.status(500).json({ error: 'Database error' });
+    }
+    
+    if (client.length === 0) {
+      return res.status(404).json({ error: 'Client not found' });
+    }
+    
+    const insertQuery = `
+      INSERT INTO client_transactions (client_id, transaction_type, amount, description, transaction_date, created_by)
+      VALUES (?, ?, ?, ?, ?, ?)
+    `;
+    
+    db.query(insertQuery, [client_id, transaction_type, amount, description, transaction_date, userId], (err, result) => {
+      if (err) {
+        console.error('Error creating transaction:', err);
+        return res.status(500).json({ error: 'Database error' });
+      }
+      
+      // Update wallet balance based on transaction type
+      if (transaction_type === 'income') {
+        updateWalletBalance(userId, amount, 'add', (walletErr) => {
+          if (walletErr) {
+            console.error('Error updating wallet balance for income:', walletErr);
+          }
+        });
+      } else if (transaction_type === 'expense') {
+        // Subtract from wallet for expense transactions
+        updateWalletBalance(userId, amount, 'subtract', (walletErr) => {
+          if (walletErr) {
+            console.error('Error updating wallet balance for expense:', walletErr);
+          }
+        });
+      }
+      
+      res.status(201).json({
+        success: true,
+        message: 'Transaction created successfully',
+        transaction_id: result.insertId
+      });
+    });
+  });
+});
+
+// Get client transactions
+app.get('/api/client-transactions/:clientId', checkAuth, (req, res) => {
+  const userId = req.user.id;
+  const clientId = req.params.clientId;
+  
+  // Verify client belongs to user
+  db.query('SELECT id FROM customers WHERE id = ? AND created_by = ?', [clientId, userId], (err, client) => {
+    if (err) {
+      console.error('Error verifying client:', err);
+      return res.status(500).json({ error: 'Database error' });
+    }
+    
+    if (client.length === 0) {
+      return res.status(404).json({ error: 'Client not found' });
+    }
+    
+    const query = `
+      SELECT * FROM client_transactions 
+      WHERE client_id = ? 
+      ORDER BY transaction_date DESC, created_at DESC
+    `;
+    
+    db.query(query, [clientId], (err, results) => {
+      if (err) {
+        console.error('Error fetching transactions:', err);
+        return res.status(500).json({ error: 'Database error' });
+      }
+      
+      res.json({
+        success: true,
+        transactions: results
+      });
+    });
+  });
+});
+
+// Invoice Management
+
+// Create invoice
+app.post('/api/invoices', checkAuth, (req, res) => {
+  const userId = req.user.id;
+  const {
+    client_id,
+    amount,
+    description,
+    due_date,
+    status
+  } = req.body;
+  
+  if (!client_id || !amount || !description || !due_date) {
+    return res.status(400).json({ error: 'Missing required fields' });
+  }
+  
+  // Verify client belongs to user
+  db.query('SELECT id FROM customers WHERE id = ? AND created_by = ?', [client_id, userId], (err, client) => {
+    if (err) {
+      console.error('Error verifying client:', err);
+      return res.status(500).json({ error: 'Database error' });
+    }
+    
+    if (client.length === 0) {
+      return res.status(404).json({ error: 'Client not found' });
+    }
+    
+    const insertQuery = `
+      INSERT INTO invoices (client_id, amount, description, due_date, status, created_by)
+      VALUES (?, ?, ?, ?, ?, ?)
+    `;
+    
+    db.query(insertQuery, [client_id, amount, description, due_date, status || 'draft', userId], (err, result) => {
+      if (err) {
+        console.error('Error creating invoice:', err);
+        return res.status(500).json({ error: 'Database error' });
+      }
+      
+      res.status(201).json({
+        success: true,
+        message: 'Invoice created successfully',
+        invoice_id: result.insertId
+      });
+    });
+  });
+});
+
+// Get client invoices
+app.get('/api/invoices/:clientId', checkAuth, (req, res) => {
+  const userId = req.user.id;
+  const clientId = req.params.clientId;
+  
+  // Verify client belongs to user
+  db.query('SELECT id FROM customers WHERE id = ? AND created_by = ?', [clientId, userId], (err, client) => {
+    if (err) {
+      console.error('Error verifying client:', err);
+      return res.status(500).json({ error: 'Database error' });
+    }
+    
+    if (client.length === 0) {
+      return res.status(404).json({ error: 'Client not found' });
+    }
+    
+    const query = `
+      SELECT * FROM invoices 
+      WHERE client_id = ? 
+      ORDER BY created_at DESC
+    `;
+    
+    db.query(query, [clientId], (err, results) => {
+      if (err) {
+        console.error('Error fetching invoices:', err);
+        return res.status(500).json({ error: 'Database error' });
+      }
+      
+      res.json({
+        success: true,
+        invoices: results
+      });
+    });
+  });
+});
+
+// Update invoice status
+app.put('/api/invoices/:id/status', checkAuth, (req, res) => {
+  const userId = req.user.id;
+  const invoiceId = req.params.id;
+  const { status } = req.body;
+  
+  if (!status) {
+    return res.status(400).json({ error: 'Status is required' });
+  }
+  
+  // Verify invoice belongs to user
+  db.query('SELECT id FROM invoices WHERE id = ? AND created_by = ?', [invoiceId, userId], (err, invoice) => {
+    if (err) {
+      console.error('Error verifying invoice:', err);
+      return res.status(500).json({ error: 'Database error' });
+    }
+    
+    if (invoice.length === 0) {
+      return res.status(404).json({ error: 'Invoice not found' });
+    }
+    
+    db.query('UPDATE invoices SET status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?', 
+      [status, invoiceId], (err, result) => {
+      if (err) {
+        console.error('Error updating invoice status:', err);
+        return res.status(500).json({ error: 'Database error' });
+      }
+      
+      res.json({
+        success: true,
+        message: 'Invoice status updated successfully'
+      });
+    });
+  });
+});
+
+// Client Analytics
+app.get('/api/client-analytics', checkAuth, (req, res) => {
+  const userId = req.user.id;
+  
+  const analyticsQuery = `
+    SELECT 
+      COUNT(*) as total_clients,
+      COUNT(CASE WHEN customer_status = 'active' THEN 1 END) as active_clients,
+      COUNT(CASE WHEN customer_status = 'inactive' THEN 1 END) as inactive_clients,
+      COUNT(CASE WHEN customer_status = 'prospect' THEN 1 END) as prospect_clients,
+      COALESCE(SUM(CASE WHEN ct.transaction_type = 'income' THEN ct.amount ELSE 0 END), 0) as total_revenue,
+      COUNT(CASE WHEN i.status IN ('draft', 'sent') THEN 1 END) as pending_invoices
+    FROM customers c
+    LEFT JOIN client_transactions ct ON c.id = ct.client_id
+    LEFT JOIN invoices i ON c.id = i.client_id
+    WHERE c.created_by = ?
+  `;
+  
+  db.query(analyticsQuery, [userId], (err, results) => {
+    if (err) {
+      console.error('Error fetching analytics:', err);
+      return res.status(500).json({ error: 'Database error' });
+    }
+    
+    res.json({
+      success: true,
+      analytics: results[0]
+    });
+  });
+});
 
 // -------------------- Money Transfer ----------------------
 
@@ -1769,9 +2528,23 @@ app.use((req, res) => {
   })
 })
 
+// Add process error handlers to prevent crashes
+process.on('uncaughtException', (error) => {
+  console.error('Uncaught Exception:', error);
+  // In production, you might want to restart the server
+  // process.exit(1);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+  // In production, you might want to restart the server
+  // process.exit(1);
+});
+
 // Start the server
-const PORT = process.env.PORT
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`)
-  console.log(`Access the application at http://localhost:${PORT}`)
-})
+  console.log(`Server running on port ${PORT}`);
+  console.log(`Access the application at http://localhost:${PORT}`);
+  console.log('Server is ready to handle requests');
+});

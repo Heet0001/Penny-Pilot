@@ -8,6 +8,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Righteous&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="moneytransfer.css">    
     <link rel="icon" href="/favicon.ico" type="image/x-icon">
+    <!-- Toastify CSS -->
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
     <!-- Add jsPDF library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
@@ -25,22 +27,35 @@
         </div>
         
         <div class="sidebar-menu">
-            <a href="../Dashboard/dashboard.html" class="menu-item">
-                <i class="fas fa-wallet"></i>
-                <span>Expenditure</span>
-            </a>
-            <a href="../Debts/debts.html" class="menu-item">
-                <i class="fas fa-hand-holding-usd"></i>
-                <span>Debts</span>
-            </a>
-            <a href="../Investment/Investments.html" class="menu-item">
-                <i class="fas fa-chart-line"></i>
-                <span>Investments</span>
-            </a>
-            <a href="#" class="menu-item active">
-                <i class="fas fa-exchange-alt"></i>
-                <span>Money Transfer</span>
-            </a>
+            <div class="menu-section">
+                <div class="menu-section-title">OVERVIEW</div>
+                <a href="../Dashboard/dashboard.html" class="menu-item">
+                    <i class="fas fa-chart-pie"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="../Investment/Investments.html" class="menu-item">
+                    <i class="fas fa-trending-up"></i>
+                    <span>Investments</span>
+                </a>
+            </div>
+            <div class="menu-section">
+                <div class="menu-section-title">FINANCE</div>
+                <a href="#" class="menu-item active">
+                    <i class="fas fa-exchange-alt"></i>
+                    <span>Money Transfer</span>
+                </a>
+                <a href="../Debts/debts.html" class="menu-item">
+                    <i class="fas fa-hand-holding-usd"></i>
+                    <span>Debts</span>
+                </a>
+            </div>
+            <div class="menu-section">
+                <div class="menu-section-title">TEAM</div>
+                <a href="../Clients/clients.html" class="menu-item">
+                    <i class="fas fa-users"></i>
+                    <span>Clients</span>
+                </a>
+            </div>
         </div>
         
         <div class="logout-container">
@@ -55,12 +70,17 @@
     <div class="main-content">
         <!-- Static Content (Upper Page) -->
         <div class="static-content">
-            <!-- Navbar -->
+            <!-- Modern Navbar -->
             <div class="navbar">
-                <div></div> <!-- Empty spacer -->
-                <div class="user-profile">
-                    <div class="user-avatar">JD</div>
-                    <div class="user-tooltip">John Doe</div>
+                <div class="page-header">
+                    <h1 class="page-title">Money Transfer</h1>
+                    <p class="page-subtitle">Send money securely and track your transfers</p>
+                </div>
+                <div class="navbar-actions">
+                    <div class="user-profile">
+                        <div class="user-avatar" id="profile-icon"></div>
+                        <div class="user-tooltip" id="username-tooltip"></div>
+                    </div>
                 </div>
             </div>
             
@@ -178,6 +198,9 @@
     </div>
 </div>
 
+    <!-- Toastify JS -->
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+    <script src="../utils/toastify-utils.js"></script>
     <script src="money_transfer.js"></script>
 </body>
 </html>

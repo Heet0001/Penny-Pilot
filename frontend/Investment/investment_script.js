@@ -107,7 +107,10 @@ function displayInvestments(investments) {
   // Clear existing content
   investmentsList.innerHTML = '';
   
-  if (!investments || investments.length === 0) {
+  // Filter out sold investments to show only active ones
+  const activeInvestments = investments ? investments.filter(investment => investment.status === 'active') : [];
+  
+  if (!activeInvestments || activeInvestments.length === 0) {
     investmentsList.innerHTML = `
       <div class="no-investments" style="text-align: center; padding: 20px; color: #7F8C8D;">
         No active investments found. Start investing by clicking "Buy Stocks".
@@ -116,7 +119,7 @@ function displayInvestments(investments) {
     return;
   }
   
-  investments.forEach((investment) => {
+  activeInvestments.forEach((investment) => {
     // Format date
     const buyDate = new Date(investment.buy_date).toLocaleDateString();
     
@@ -131,6 +134,7 @@ function displayInvestments(investments) {
     transactionItem.dataset.stockName = investment.stock_name;
     transactionItem.dataset.quantity = investment.quantity;
     transactionItem.dataset.currentPrice = investment.current_price;
+    transactionItem.dataset.investmentId = investment.id;
     
     transactionItem.innerHTML = `
       <div class="transaction-icon" style="background: ${profitLoss >= 0 ? '#00B894' : '#D63031'}">
@@ -151,7 +155,7 @@ function displayInvestments(investments) {
         <div class="transaction-amount" style="color: ${profitLossColor}">
           ₹${profitLoss.toFixed(2)} (${investment.profit_loss_percentage}%)
         </div>
-        <button class="sell-btn" onclick="openSellModal('${investment.stock_name}', ${investment.quantity}, ${investment.current_price})">
+        <button class="sell-btn" onclick="openSellModal('${investment.stock_name}', ${investment.quantity}, ${investment.current_price}, ${investment.id})">
           <i class="fas fa-money-bill-wave"></i> Sell
         </button>
       </div>
@@ -162,47 +166,50 @@ function displayInvestments(investments) {
 }
 
 // Function to open sell modal with pre-filled data
-function openSellModal(stockName, maxQuantity, currentPrice) {
+function openSellModal(stockName, maxQuantity, currentPrice, investmentId) {
+  console.log('Opening sell modal for:', { stockName, maxQuantity, currentPrice, investmentId });
+  
   const modal = document.getElementById('entry-modal');
-  const stockSelect = document.getElementById('entry-category');
-  const quantityInput = document.getElementById('entry-amount');
+  const stockInput = document.getElementById('sell-stock-input');
+  const quantityInput = document.getElementById('sell-quantity');
   const sellPriceInput = document.getElementById('sell-price');
   const expectedReturnSpan = document.getElementById('expected-return');
-  const dateInput = document.getElementById('entry-date');
+  const dateInput = document.getElementById('sell-date');
   
-  if (!modal || !stockSelect || !quantityInput || !sellPriceInput || !expectedReturnSpan || !dateInput) return;
-
-  // Find the option with matching stock name
-  for (let i = 0; i < stockSelect.options.length; i++) {
-    const option = stockSelect.options[i];
-    if (option.dataset.stockName === stockName) {
-      stockSelect.selectedIndex = i;
-      break;
-    }
+  if (!modal || !stockInput || !quantityInput || !sellPriceInput || !expectedReturnSpan || !dateInput) {
+    console.error('Missing modal elements:', {
+      modal: !!modal,
+      stockInput: !!stockInput,
+      quantityInput: !!quantityInput,
+      sellPriceInput: !!sellPriceInput,
+      expectedReturnSpan: !!expectedReturnSpan,
+      dateInput: !!dateInput
+    });
+    return;
   }
 
-  // Enable inputs
-  quantityInput.disabled = false;
-  sellPriceInput.disabled = false;
+  // Set stock name
+  stockInput.value = stockName;
   
-  // Set values
-  quantityInput.max = maxQuantity;
-  quantityInput.min = "1";
-  quantityInput.value = "1";
-  sellPriceInput.value = currentPrice;
-  sellPriceInput.min = "0.01";
-  sellPriceInput.step = "0.01";
+  // Set today's date as default
   dateInput.value = new Date().toISOString().split('T')[0];
   
-  // Show max quantity in the label
-  const quantityLabel = document.querySelector('label[for="entry-amount"]');
-  if (quantityLabel) {
-    quantityLabel.textContent = `Quantity to Sell (Max: ${maxQuantity})`;
+  // Store investment ID in form dataset for later use
+  const form = document.getElementById('sell-stock-form');
+  if (form && investmentId) {
+    form.dataset.investmentId = investmentId;
   }
   
-  // Update expected return
-  const total = 1 * currentPrice;
-  expectedReturnSpan.textContent = `₹${total.toFixed(2)}`;
+  // Trigger stock details fetch
+  fetchStockDetails(stockName).then(() => {
+    // After fetching details, set the initial quantity
+    if (quantityInput) {
+      quantityInput.value = "1";
+    }
+    
+    // Update expected return
+    updateExpectedReturnForSell(currentPrice, 1);
+  });
   
   // Show the modal
   showModal(modal);
@@ -214,19 +221,34 @@ function updateInvestmentSummary(summary) {
   const currentValueElement = document.getElementById("current-value");
   const profitLossElement = document.getElementById("profit-loss");
 
+  // Calculate summary only for active investments
+  const activeInvestments = summary.investments ? summary.investments.filter(investment => investment.status === 'active') : [];
+  
+  let totalInvested = 0;
+  let totalCurrentValue = 0;
+  
+  activeInvestments.forEach(investment => {
+    const investedAmount = Number(investment.buy_price) * Number(investment.quantity);
+    const currentValue = Number(investment.current_value);
+    
+    totalInvested += investedAmount;
+    totalCurrentValue += currentValue;
+  });
+  
+  const totalProfitLoss = totalCurrentValue - totalInvested;
+  const totalProfitLossPercentage = totalInvested > 0 ? ((totalProfitLoss / totalInvested) * 100) : 0;
+
   if (totalInvestedElement) {
-    totalInvestedElement.textContent = `₹${Number.parseFloat(summary.total_invested).toFixed(2)}`;
+    totalInvestedElement.textContent = `₹${totalInvested.toFixed(2)}`;
   }
 
   if (currentValueElement) {
-    currentValueElement.textContent = `₹${Number.parseFloat(summary.total_current_value).toFixed(2)}`;
+    currentValueElement.textContent = `₹${totalCurrentValue.toFixed(2)}`;
   }
 
   if (profitLossElement) {
-    const profitLoss = Number.parseFloat(summary.total_profit_loss);
-    const profitLossPercentage = Number.parseFloat(summary.total_profit_loss_percentage);
-    const isPositive = profitLoss >= 0;
-    profitLossElement.textContent = `${isPositive ? "+" : ""}₹${profitLoss.toFixed(2)} (${profitLossPercentage}%)`;
+    const isPositive = totalProfitLoss >= 0;
+    profitLossElement.textContent = `${isPositive ? "+" : ""}₹${totalProfitLoss.toFixed(2)} (${totalProfitLossPercentage.toFixed(2)}%)`;
     profitLossElement.style.color = isPositive ? "#00B894" : "#D63031";
   }
   
@@ -242,7 +264,10 @@ function processInvestmentData(investments) {
     return { stockNames: [], currentValues: [] };
   }
   
-  investments.forEach(investment => {
+  // Only process active investments for charts
+  const activeInvestments = investments.filter(investment => investment.status === 'active');
+  
+  activeInvestments.forEach(investment => {
     if (!stockMap[investment.stock_name]) {
       stockMap[investment.stock_name] = 0;
     }
@@ -282,6 +307,7 @@ function renderPortfolioChart(investments) {
   if (!chartPlaceholders || chartPlaceholders.length === 0) return;
   
   const pieChartPlaceholder = chartPlaceholders[0];
+  const barChartPlaceholder = chartPlaceholders[1];
   
   // Handle portfolio pie chart
   if (pieChartPlaceholder) {
@@ -289,9 +315,13 @@ function renderPortfolioChart(investments) {
     pieChartPlaceholder.innerHTML = '';
     pieChartPlaceholder.classList.remove('chart-placeholder');
     
-    // Create canvas element for the chart
+    // Create canvas element for the chart - reduced by 20%
     const canvas = document.createElement('canvas');
     canvas.id = 'portfolioChart';
+    canvas.width = 640;  // 800 * 0.8 = 640
+    canvas.height = 480; // 600 * 0.8 = 480
+    canvas.style.maxWidth = '100%';
+    canvas.style.height = 'auto';
     pieChartPlaceholder.appendChild(canvas);
     
     // Process data for chart
@@ -304,7 +334,7 @@ function renderPortfolioChart(investments) {
       `;
       pieChartPlaceholder.classList.add('chart-placeholder');
     } else {
-      // Create pie chart
+      // Create pie chart with enhanced styling
       const ctx = canvas.getContext('2d');
       new Chart(ctx, {
         type: 'pie',
@@ -313,36 +343,187 @@ function renderPortfolioChart(investments) {
           datasets: [{
             data: currentValues,
             backgroundColor: [
+              'rgba(255, 99, 132, 0.8)', 'rgba(54, 162, 235, 0.8)', 'rgba(255, 206, 86, 0.8)', 
+              'rgba(75, 192, 192, 0.8)', 'rgba(153, 102, 255, 0.8)', 'rgba(255, 159, 64, 0.8)',
+              'rgba(138, 194, 74, 0.8)', 'rgba(96, 125, 139, 0.8)', 'rgba(231, 76, 60, 0.8)',
+              'rgba(52, 152, 219, 0.8)', 'rgba(241, 196, 15, 0.8)', 'rgba(26, 188, 156, 0.8)'
+            ],
+            borderColor: [
               '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', 
               '#9966FF', '#FF9F40', '#8AC24A', '#607D8B',
               '#E74C3C', '#3498DB', '#F1C40F', '#1ABC9C'
             ],
-            borderWidth: 1
+            borderWidth: 3,
+            hoverBorderWidth: 5,
+            hoverOffset: 8
           }]
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
+          animation: {
+            animateRotate: true,
+            animateScale: true,
+            duration: 1500,
+            easing: 'easeOutQuart'
+          },
           plugins: {
             title: { 
               display: true, 
               text: 'Portfolio Allocation', 
-              font: { size: 16 }, 
-              padding: { top: 10, bottom: 10 } 
+              font: { size: 20, weight: 'bold' }, 
+              padding: { top: 15, bottom: 20 },
+              color: '#1F2937'
             },
             legend: { 
               position: 'right', 
-              labels: { boxWidth: 12, padding: 12 } 
+              labels: { 
+                boxWidth: 15, 
+                padding: 15,
+                font: { size: 12, weight: '500' },
+                usePointStyle: true,
+                pointStyle: 'circle'
+              }
             },
             tooltip: {
+              backgroundColor: 'rgba(17, 24, 39, 0.95)',
+              titleColor: '#F9FAFB',
+              bodyColor: '#F9FAFB',
+              borderColor: '#6B7280',
+              borderWidth: 1,
+              cornerRadius: 8,
+              displayColors: true,
               callbacks: {
                 label: function(context) {
                   const label = context.label || '';
                   const value = context.raw || 0;
                   const total = context.chart.data.datasets[0].data.reduce((a, b) => a + b, 0);
-                  const percentage = ((value / total) * 100).toFixed(1);
+                  const percentage = ((value / total) * 100).toF
                   return `${label}: ₹${value.toFixed(2)} (${percentage}%)`;
                 }
+              }
+            }
+          }
+        }
+      });
+    }
+  }
+  
+  // Handle investment bar chart (second slide)
+  if (barChartPlaceholder) {
+    // Remove placeholder content
+    barChartPlaceholder.innerHTML = '';
+    barChartPlaceholder.classList.remove('chart-placeholder');
+    
+    // Create canvas element for the bar chart - same size as pie chart
+    const barCanvas = document.createElement('canvas');
+    barCanvas.id = 'investmentBarChart';
+    barCanvas.width = 640;  // Same as pie chart
+    barCanvas.height = 480; // Same as pie chart
+    barCanvas.style.maxWidth = '100%';
+    barCanvas.style.height = 'auto';
+    barChartPlaceholder.appendChild(barCanvas);
+    
+    // Process data for bar chart
+    const { stockNames, currentValues } = processInvestmentData(investments);
+    
+    if (!investments || !Array.isArray(investments) || investments.length === 0 || stockNames.length === 0) {
+      barChartPlaceholder.innerHTML = `
+        <i class="fas fa-chart-bar"></i>
+        <p>No investment performance data to display. Start investing by clicking "Buy Stocks".</p>
+      `;
+      barChartPlaceholder.classList.add('chart-placeholder');
+    } else {
+      // Create bar chart with enhanced styling
+      const barCtx = barCanvas.getContext('2d');
+      new Chart(barCtx, {
+        type: 'bar',
+        data: {
+          labels: stockNames,
+          datasets: [{
+            label: 'Current Value (₹)',
+            data: currentValues,
+            backgroundColor: [
+              'rgba(59, 130, 246, 0.8)', 'rgba(16, 185, 129, 0.8)', 'rgba(245, 158, 11, 0.8)',
+              'rgba(239, 68, 68, 0.8)', 'rgba(139, 92, 246, 0.8)', 'rgba(236, 72, 153, 0.8)',
+              'rgba(34, 197, 94, 0.8)', 'rgba(251, 146, 60, 0.8)', 'rgba(168, 85, 247, 0.8)',
+              'rgba(14, 165, 233, 0.8)', 'rgba(132, 204, 22, 0.8)', 'rgba(244, 63, 94, 0.8)'
+            ],
+            borderColor: [
+              '#3B82F6', '#10B981', '#F59E0B', '#EF4444', 
+              '#8B5CF6', '#EC4899', '#22C55E', '#FB923C',
+              '#A855F7', '#0EA5E9', '#84CC16', '#F43F5E'
+            ],
+            borderWidth: 2,
+            borderRadius: 8,
+            borderSkipped: false
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          animation: {
+            duration: 1500,
+            easing: 'easeOutQuart'
+          },
+          plugins: {
+            title: {
+              display: true,
+              text: 'Investment Performance',
+              font: { size: 20, weight: 'bold' },
+              padding: { top: 15, bottom: 20 },
+              color: '#1F2937'
+            },
+            legend: {
+              display: false
+            },
+            tooltip: {
+              backgroundColor: 'rgba(17, 24, 39, 0.95)',
+              titleColor: '#F9FAFB',
+              bodyColor: '#F9FAFB',
+              borderColor: '#6B7280',
+              borderWidth: 1,
+              cornerRadius: 8,
+              callbacks: {
+                label: function(context) {
+                  return `${context.label}: ₹${context.raw.toFixed(2)}`;
+                }
+              }
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              grid: {
+                color: 'rgba(156, 163, 175, 0.2)'
+              },
+              ticks: {
+                callback: function(value) {
+                  return '₹' + value.toLocaleString('en-IN');
+                },
+                color: '#6B7280',
+                font: { size: 12 }
+              },
+              title: {
+                display: true,
+                text: 'Value (₹)',
+                color: '#374151',
+                font: { size: 14, weight: '600' }
+              }
+            },
+            x: {
+              grid: {
+                display: false
+              },
+              ticks: {
+                color: '#6B7280',
+                font: { size: 12 }
+              },
+              title: {
+                display: true,
+                text: 'Stock Holdings',
+                color: '#374151',
+                font: { size: 14, weight: '600' }
               }
             }
           }
@@ -358,8 +539,11 @@ function processInvestmentGrowthData(investments) {
     return { stockNames: [], investedValues: [], currentValues: [] };
   }
   
+  // Only process active investments for growth chart
+  const activeInvestments = investments.filter(investment => investment.status === 'active');
+  
   // Sort investments by current value (descending)
-  const sortedInvestments = [...investments].sort((a, b) => 
+  const sortedInvestments = [...activeInvestments].sort((a, b) => 
     parseFloat(b.current_value) - parseFloat(a.current_value)
   );
   
@@ -531,8 +715,11 @@ function populateSellStockDropdown(investments) {
     sellStockSelect.remove(1);
   }
 
+  // Filter to only show active investments
+  const activeInvestments = investments ? investments.filter(investment => investment.status === 'active') : [];
+
   // Add active investments to dropdown
-  investments.forEach((investment) => {
+  activeInvestments.forEach((investment) => {
     const option = document.createElement("option");
     option.value = investment.id;
     option.textContent = `${investment.stock_name} - ${Number(investment.quantity)} units @ ₹${Number.parseFloat(investment.buy_price).toFixed(2)}`;
@@ -571,10 +758,12 @@ function setupStockNameInput() {
     // Function to fetch stock price
     const fetchStockPrice = async (stockName) => {
       try {
-        // Add loading states
-        stockPriceInput.value = "Fetching...";
+        // Add loading states - disable input and show loading on button
+        stockPriceInput.disabled = true;
+        stockPriceInput.placeholder = "Fetching price...";
         stockPriceInput.classList.add('fetching');
         fetchPriceBtn.classList.add('loading');
+        fetchPriceBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Fetching...';
         
         // Call our server endpoint instead of Alpha Vantage directly
         const response = await fetch(`${BASE_URL}/api/stock-price/${stockName}`, {
@@ -597,17 +786,28 @@ function setupStockNameInput() {
             const total = price * Number(quantityInput.value);
             totalCostSpan.textContent = `₹${total.toFixed(2)}`;
           }
+          
+          // Show success message with source info
+          if (data.source === 'alphavantage') {
+            showToastSuccess(`Stock price fetched successfully from Alpha Vantage: ₹${price.toFixed(2)}`);
+          } else {
+            showToastInfo(`Mock price generated for ${stockName}: ₹${price.toFixed(2)} (Configure Alpha Vantage API for real prices)`);
+          }
         } else {
           throw new Error("Price not available");
         }
       } catch (error) {
         console.error("Error fetching stock price:", error);
-        showErrorMessage("Could not fetch stock price as the API limit has been reached. You can enter the price manually.");
-        stockPriceInput.value = ""; // Clear the "Fetching..." text
+        showToastError("Could not fetch stock price. Please enter the price manually.");
+        stockPriceInput.value = ""; // Clear any existing value
+        stockPriceInput.focus(); // Focus on input for manual entry
       } finally {
         // Remove loading states
+        stockPriceInput.disabled = false;
+        stockPriceInput.placeholder = "Enter stock price";
         stockPriceInput.classList.remove('fetching');
         fetchPriceBtn.classList.remove('loading');
+        fetchPriceBtn.innerHTML = '<i class="fas fa-sync-alt"></i> Fetch Price';
       }
     };
 
@@ -628,7 +828,7 @@ function setupStockNameInput() {
         if (stockName) {
           fetchStockPrice(stockName);
         } else {
-          showErrorMessage("Please enter a stock symbol first");
+          showToastError("Please enter a stock symbol first");
         }
       });
     }
@@ -650,6 +850,41 @@ function setupStockNameInput() {
 }
 
 // Setup quantity input for selling
+function setupSellForm() {
+  const stockSelect = document.getElementById("sell-stock-input");
+  const quantityInput = document.getElementById("sell-quantity");
+  const sellPriceInput = document.getElementById("stock-price");
+  const expectedReturnSpan = document.getElementById("expected-return");
+  const fetchStockBtn = document.getElementById('fetch-stock-btn');
+
+  const updateReturn = () => {
+    const quantity = Number(quantityInput.value);
+    const price = Number(sellPriceInput.value);
+    const total = quantity * price;
+    expectedReturnSpan.value = `₹${total.toFixed(2)}`;
+  };
+
+  if (quantityInput && sellPriceInput) {
+    quantityInput.addEventListener('input', updateReturn);
+    sellPriceInput.addEventListener('input', updateReturn);
+  }
+
+  if (stockSelect && fetchStockBtn) {
+    fetchStockBtn.addEventListener('click', () => {
+      const stockName = stockSelect.value.trim().toUpperCase();
+      if (stockName) fetchStockDetails(stockName);
+      else showToastError("Please enter a stock name");
+    });
+  }
+
+  const form = document.getElementById('sell-stock-form');
+  if (form) {
+    form.addEventListener('submit', handleSellStock);
+  }
+}
+
+setupSellForm(); // Initialize sell form setup
+
 function setupQuantityInput() {
   const stockSelect = document.getElementById("entry-category");
   const quantityInput = document.getElementById("entry-amount");
@@ -733,76 +968,149 @@ function setupQuantityInput() {
   }
 }
 
-// Show error message function
+// Show error message function (using Toastify)
 function showErrorMessage(message) {
-  const errorDiv = document.getElementById("error-message");
-  if (errorDiv) {
-    errorDiv.textContent = message;
-    errorDiv.style.display = "block";
-    errorDiv.style.backgroundColor = "#ff7675"; // Error color
-    setTimeout(() => {
-      errorDiv.style.display = "none";
-    }, 5000);
+  // Use Toastify if available, otherwise fallback to alert
+  if (typeof showToastError === 'function') {
+    showToastError(message);
+  } else {
+    alert('❌ ' + message);
   }
 }
 
-// Show success message function
-function showSuccessMessage(message) {
-  const errorDiv = document.getElementById("error-message");
-  if (errorDiv) {
-    errorDiv.textContent = message;
-    errorDiv.style.backgroundColor = "#00b894"; // Success color
-    errorDiv.style.display = "block";
-    setTimeout(() => {
-      errorDiv.style.display = "none";
-      errorDiv.style.backgroundColor = "#ff7675"; // Reset to error color
-    }, 5000);
+// Function to reset sell stock form
+function resetSellStockForm() {
+  const form = document.getElementById('sell-stock-form');
+  if (form) {
+    form.reset();
+    // Clear all dataset attributes
+    delete form.dataset.investmentId;
+    delete form.dataset.buyPrice;
+    delete form.dataset.currentPrice;
+    delete form.dataset.maxQuantity;
+    delete form.dataset.stockName;
   }
+  
+  // Hide stock details section
+  const stockDetails = document.querySelector('.stock-details');
+  if (stockDetails) {
+    stockDetails.style.display = 'none';
+  }
+  
+  // Reset form inputs
+  const stockInput = document.getElementById('sell-stock-input');
+  const quantityInput = document.getElementById('sell-quantity');
+  const sellPriceInput = document.getElementById('sell-price');
+  const expectedReturn = document.getElementById('expected-return');
+  const holdingsDetails = document.getElementById('current-holdings-details');
+  
+  if (stockInput) stockInput.value = '';
+  if (quantityInput) {
+    quantityInput.value = '';
+    quantityInput.disabled = true;
+  }
+  if (sellPriceInput) {
+    sellPriceInput.value = '';
+    sellPriceInput.readOnly = true;
+  }
+  if (expectedReturn) expectedReturn.value = '₹0.00';
+  if (holdingsDetails) holdingsDetails.innerHTML = '';
 }
 
-// Show modal with animation
+// Function to refresh charts after data updates
+function refreshChartsAndUI() {
+  // Destroy existing charts to prevent canvas reuse issues
+  const existingPieChart = document.getElementById('portfolioChart');
+  const existingGrowthChart = document.getElementById('growthChart');
+  
+  if (existingPieChart) {
+    const pieChartParent = existingPieChart.parentElement;
+    pieChartParent.innerHTML = `
+      <i class="fas fa-chart-pie"></i>
+      <p>Loading portfolio allocation...</p>
+    `;
+    pieChartParent.classList.add('chart-placeholder');
+  }
+  
+  if (existingGrowthChart) {
+    const growthChartParent = existingGrowthChart.parentElement;
+    growthChartParent.innerHTML = `
+      <i class="fas fa-chart-line"></i>
+      <p>Loading investment growth...</p>
+    `;
+    growthChartParent.classList.add('chart-placeholder');
+  }
+  
+  // Reload investments to trigger chart recreation
+  loadInvestments();
+}
+
+// Modal utility functions
 function showModal(modal) {
   if (modal) {
-    modal.style.display = "flex";
-    modal.classList.remove("hidden");
+    modal.style.display = 'flex';
+    modal.classList.remove('hidden');
+    document.body.style.overflow = 'hidden'; // Prevent background scrolling
   }
 }
 
-// Hide modal with animation
 function closeModal(modal) {
   if (modal) {
-    modal.classList.add("hidden");
+    modal.classList.add('hidden');
     setTimeout(() => {
-      modal.style.display = "none";
-      modal.classList.remove("hidden"); // Reset for next use
+      modal.style.display = 'none';
+      modal.classList.remove('hidden'); // Reset for next use
+      document.body.style.overflow = 'auto'; // Restore scrolling
     }, 300); // Match animation duration
   }
 }
 
+// Show success message function (using Toastify)
+function showSuccessMessage(message) {
+  // Use Toastify if available, otherwise fallback to alert
+  if (typeof showToastSuccess === 'function') {
+    showToastSuccess(message);
+  } else {
+    alert('✅ ' + message);
+  }
+}
+
+
 // Reset sell stock form
 function resetSellStockForm() {
-  const sellStockSelect = document.getElementById("entry-category");
-  const quantityInput = document.getElementById("entry-amount");
+  const stockInput = document.getElementById("sell-stock-input");
+  const quantityInput = document.getElementById("sell-quantity");
   const sellPriceInput = document.getElementById("sell-price");
-  const dateInput = document.getElementById("entry-date");
+  const dateInput = document.getElementById("sell-date");
   const expectedReturnSpan = document.getElementById("expected-return");
-  const quantityLabel = document.querySelector('label[for="entry-amount"]');
+  const stockDetails = document.querySelector('.stock-details');
+  const holdingsDetails = document.getElementById('current-holdings-details');
+  const manualPriceBtn = document.getElementById('manual-price-btn');
+  const form = document.getElementById('sell-stock-form');
 
-  // Reset dropdown
-  if (sellStockSelect) {
-    sellStockSelect.selectedIndex = 0;
+  // Reset stock input
+  if (stockInput) {
+    stockInput.value = "";
   }
 
   // Reset and disable quantity input
   if (quantityInput) {
     quantityInput.value = "";
     quantityInput.disabled = true;
+    quantityInput.max = "";
   }
 
-  // Reset and disable sell price input
+  // Reset sell price input
   if (sellPriceInput) {
     sellPriceInput.value = "";
-    sellPriceInput.disabled = true;
+    sellPriceInput.readOnly = true;
+    sellPriceInput.removeAttribute('data-fetched');
+  }
+
+  // Reset manual price button
+  if (manualPriceBtn) {
+    manualPriceBtn.innerHTML = '<i class="fas fa-edit"></i> Manual';
+    manualPriceBtn.title = 'Enter price manually';
   }
 
   // Reset date to today
@@ -812,12 +1120,26 @@ function resetSellStockForm() {
 
   // Reset expected return
   if (expectedReturnSpan) {
-    expectedReturnSpan.textContent = "₹0.00";
+    expectedReturnSpan.value = "₹0.00";
   }
 
-  // Reset quantity label
-  if (quantityLabel) {
-    quantityLabel.textContent = "Quantity to Sell";
+  // Hide stock details
+  if (stockDetails) {
+    stockDetails.style.display = 'none';
+  }
+
+  // Clear holdings details
+  if (holdingsDetails) {
+    holdingsDetails.innerHTML = '';
+  }
+
+  // Clear form dataset
+  if (form) {
+    delete form.dataset.investmentId;
+    delete form.dataset.buyPrice;
+    delete form.dataset.currentPrice;
+    delete form.dataset.maxQuantity;
+    delete form.dataset.stockName;
   }
 }
 
@@ -1086,11 +1408,20 @@ function formatIndianStockSymbol(symbol) {
 
 // Function to fetch stock details
 async function fetchStockDetails(stockName) {
+  console.log('Fetching stock details for:', stockName);
+  
   try {
     const currentUser = JSON.parse(localStorage.getItem("currentUser"));
     if (!currentUser || !currentUser.id) {
-      showErrorMessage("Please log in to fetch stock details");
-      return;
+      showErrorMessage("❌ Please log in to fetch stock details");
+      return false;
+    }
+
+    // Show loading state
+    const fetchBtn = document.getElementById('fetch-stock-btn');
+    if (fetchBtn) {
+      fetchBtn.disabled = true;
+      fetchBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
     }
 
     const response = await fetch(`${BASE_URL}/api/get-investments/${currentUser.id}`);
@@ -1099,14 +1430,18 @@ async function fetchStockDetails(stockName) {
     }
 
     const data = await response.json();
+    console.log('Available investments:', data.investments);
+    
     const matchingInvestment = data.investments.find(inv => 
       inv.stock_name.toUpperCase() === stockName.toUpperCase() && 
       inv.status === 'active'
     );
 
+    console.log('Matching investment:', matchingInvestment);
+
     if (!matchingInvestment) {
-      showErrorMessage(`No active investment found for ${stockName}`);
-      return;
+      showErrorMessage(`❌ No active investment found for ${stockName}. Please check the stock name.`);
+      return false;
     }
 
     // Show stock details section
@@ -1121,8 +1456,9 @@ async function fetchStockDetails(stockName) {
       holdingsDetails.innerHTML = `
         <p><strong>Stock:</strong> ${matchingInvestment.stock_name}</p>
         <p><strong>Current Holdings:</strong> ${matchingInvestment.quantity} shares</p>
-        <p><strong>Buy Price:</strong> ₹${matchingInvestment.buy_price}</p>
-        <p><strong>Current Price:</strong> ₹${matchingInvestment.current_price}</p>
+        <p><strong>Buy Price:</strong> ₹${Number(matchingInvestment.buy_price).toFixed(2)}</p>
+        <p><strong>Current Price:</strong> ₹${Number(matchingInvestment.current_price).toFixed(2)}</p>
+        <p><strong>Investment Value:</strong> ₹${(Number(matchingInvestment.buy_price) * Number(matchingInvestment.quantity)).toFixed(2)}</p>
       `;
     }
 
@@ -1132,33 +1468,90 @@ async function fetchStockDetails(stockName) {
       quantityInput.disabled = false;
       quantityInput.max = matchingInvestment.quantity;
       quantityInput.min = 1;
+      quantityInput.step = 1;
       quantityInput.value = 1;
     }
 
-    // Set up sell date
+    // Set up sell date to today
     const dateInput = document.getElementById('sell-date');
     if (dateInput) {
       dateInput.value = new Date().toISOString().split('T')[0];
     }
 
+    // Set up sell price
+    let currentPrice = Number(matchingInvestment.current_price);
+    const sellPriceInput = document.getElementById('sell-price');
+    
+    if (sellPriceInput) {
+      sellPriceInput.value = currentPrice.toFixed(2);
+      sellPriceInput.readOnly = true;
+      sellPriceInput.setAttribute('data-fetched', 'true');
+    }
+
+    // Set up manual price input button
+    const manualPriceBtn = document.getElementById('manual-price-btn');
+    if (manualPriceBtn && sellPriceInput) {
+      manualPriceBtn.onclick = () => {
+        if (sellPriceInput.readOnly) {
+          sellPriceInput.readOnly = false;
+          sellPriceInput.focus();
+          sellPriceInput.select();
+          manualPriceBtn.innerHTML = '<i class="fas fa-lock"></i> Lock';
+          manualPriceBtn.title = 'Lock price input';
+          manualPriceBtn.classList.add('btn-warning');
+        } else {
+          sellPriceInput.readOnly = true;
+          manualPriceBtn.innerHTML = '<i class="fas fa-edit"></i> Manual';
+          manualPriceBtn.title = 'Enter price manually';
+          manualPriceBtn.classList.remove('btn-warning');
+        }
+      };
+    }
+
     // Calculate initial expected return
-    updateExpectedReturn(matchingInvestment.current_price, 1);
+    updateExpectedReturnForSell(currentPrice, 1);
 
     // Store investment details for later use
-    document.getElementById('sell-stock-form').dataset.investmentId = matchingInvestment.id;
-    document.getElementById('sell-stock-form').dataset.buyPrice = matchingInvestment.buy_price;
-    document.getElementById('sell-stock-form').dataset.currentPrice = matchingInvestment.current_price;
+    const form = document.getElementById('sell-stock-form');
+    if (form) {
+      form.dataset.investmentId = matchingInvestment.id;
+      form.dataset.buyPrice = matchingInvestment.buy_price;
+      form.dataset.currentPrice = currentPrice;
+      form.dataset.maxQuantity = matchingInvestment.quantity;
+      form.dataset.stockName = matchingInvestment.stock_name;
+    }
+
+    showSuccessMessage(`✅ Stock details loaded for ${matchingInvestment.stock_name}`);
+    console.log('Stock details successfully loaded and form populated');
+    return true;
 
   } catch (error) {
     console.error("Error fetching stock details:", error);
     showErrorMessage(error.message || "Failed to fetch stock details");
+    return false;
+  } finally {
+    // Reset button state
+    const fetchBtn = document.getElementById('fetch-stock-btn');
+    if (fetchBtn) {
+      fetchBtn.disabled = false;
+      fetchBtn.innerHTML = '<i class="fas fa-sync-alt"></i> Fetch Details';
+    }
   }
 }
 
-// Function to update expected return
+// Function to update expected return for sell form
+function updateExpectedReturnForSell(currentPrice, quantity) {
+  const expectedReturn = document.getElementById('expected-return');
+  if (expectedReturn && currentPrice > 0 && quantity > 0) {
+    const total = currentPrice * quantity;
+    expectedReturn.value = `₹${total.toFixed(2)}`;
+  }
+}
+
+// Function to update expected return (legacy)
 function updateExpectedReturn(currentPrice, quantity) {
   const expectedReturn = document.getElementById('expected-return');
-  if (expectedReturn) {
+  if (expectedReturn && currentPrice > 0 && quantity > 0) {
     const total = currentPrice * quantity;
     expectedReturn.value = `₹${total.toFixed(2)}`;
   }
@@ -1167,60 +1560,115 @@ function updateExpectedReturn(currentPrice, quantity) {
 // Function to handle stock selling
 async function handleSellStock(event) {
   event.preventDefault();
+  
+  console.log('handleSellStock called');
 
   const form = document.getElementById('sell-stock-form');
-  const stockName = document.getElementById('sell-stock-input').value.trim().toUpperCase();
+  const stockInput = document.getElementById('sell-stock-input');
   const quantityInput = document.getElementById('sell-quantity');
   const dateInput = document.getElementById('sell-date');
-  const sellBtn = form.querySelector('button[type="submit"], .save-btn');
+  const sellPriceInput = document.getElementById('sell-price');
+  const sellBtn = form ? form.querySelector('button[type="submit"], .save-btn') : null;
 
-  if (!form || !stockName || !quantityInput || !dateInput) return;
-
-  // Validation checks
-  if (!stockName) {
-    showErrorMessage("Please enter a stock name");
+  // Enhanced validation with better error messages
+  if (!form) {
+    console.error('Sell stock form not found');
+    showErrorMessage("❌ Sell form not found. Please refresh the page and try again.");
     return;
   }
 
+  if (!stockInput || !quantityInput || !dateInput || !sellPriceInput) {
+    console.error('Required form elements missing:', {
+      stockInput: !!stockInput,
+      quantityInput: !!quantityInput,
+      dateInput: !!dateInput,
+      sellPriceInput: !!sellPriceInput
+    });
+    showErrorMessage("❌ Form elements missing. Please refresh the page and try again.");
+    return;
+  }
+
+  // Get form values
+  const stockName = stockInput.value.trim().toUpperCase();
   const sellQuantity = parseInt(quantityInput.value);
-  const maxQuantity = parseInt(quantityInput.max);
-  const currentPrice = parseFloat(form.dataset.currentPrice);
+  const maxQuantity = parseInt(form.dataset.maxQuantity || quantityInput.max);
+  const sellPrice = parseFloat(sellPriceInput.value);
   const sellDate = dateInput.value;
 
-  if (!sellQuantity || isNaN(sellQuantity) || sellQuantity <= 0) {
-    showErrorMessage("Please enter a valid quantity");
+  console.log('Form values:', { stockName, sellQuantity, maxQuantity, sellPrice, sellDate });
+
+  // Validation checks with more specific error messages
+  if (!stockName) {
+    showErrorMessage("🔍 Please enter a stock name and fetch stock details first.");
+    stockInput.focus();
     return;
   }
 
-  if (sellQuantity > maxQuantity) {
-    showErrorMessage(`You can only sell up to ${maxQuantity} shares`);
+  if (!sellQuantity || isNaN(sellQuantity) || sellQuantity <= 0) {
+    showErrorMessage("📊 Please enter a valid quantity (must be a positive number).");
+    quantityInput.focus();
+    return;
+  }
+
+  if (maxQuantity && sellQuantity > maxQuantity) {
+    showErrorMessage(`⚠️ You can only sell up to ${maxQuantity} shares. You currently own ${maxQuantity} shares of ${stockName}.`);
+    quantityInput.focus();
+    return;
+  }
+
+  if (!sellPrice || isNaN(sellPrice) || sellPrice <= 0) {
+    showErrorMessage("💰 Please enter a valid sell price (must be a positive number).");
+    sellPriceInput.focus();
     return;
   }
 
   if (!sellDate) {
-    showErrorMessage("Please select a sell date");
+    showErrorMessage("📅 Please select a sell date.");
+    dateInput.focus();
+    return;
+  }
+
+  // Check if sell date is not in the future
+  const today = new Date();
+  const sellDateObj = new Date(sellDate);
+  if (sellDateObj > today) {
+    showErrorMessage("📅 Sell date cannot be in the future.");
+    dateInput.focus();
     return;
   }
 
   const currentUser = JSON.parse(localStorage.getItem("currentUser"));
   if (!currentUser || !currentUser.id) {
-    showErrorMessage("Please log in to sell stocks");
+    showErrorMessage("Please log in to sell stocks.");
     return;
   }
 
+  // Check if we have investment ID
+  const investmentId = form.dataset.investmentId;
+  if (!investmentId) {
+    showErrorMessage("🔍 Investment details not found. Please fetch stock details first by clicking 'Fetch Details' button.");
+    return;
+  }
+
+  console.log('Investment ID:', investmentId);
+
   try {
-    if (sellBtn) sellBtn.disabled = true;
+    if (sellBtn) {
+      sellBtn.disabled = true;
+      sellBtn.textContent = "Selling...";
+    }
 
     // Prepare data for API
     const sellData = {
       user_id: currentUser.id,
-      investment_id: form.dataset.investmentId,
-      stock_name: stockName,
-      sell_price: currentPrice,
+      investment_id: investmentId,
+      sell_price: sellPrice,
       sell_quantity: sellQuantity,
       sell_date: sellDate,
-      partial_sale: sellQuantity < maxQuantity
+      partial_sale: maxQuantity ? sellQuantity < maxQuantity : false
     };
+
+    console.log("Selling stock with data:", sellData);
 
     // Call API to sell stock
     const response = await fetch(`${BASE_URL}/api/sell-stock`, {
@@ -1232,41 +1680,82 @@ async function handleSellStock(event) {
     });
 
     if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || "Failed to sell stock");
+      // Handle different HTTP error codes
+      if (response.status === 400) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Invalid request data");
+      } else if (response.status === 404) {
+        throw new Error("Investment not found. It may have already been sold.");
+      } else if (response.status === 500) {
+        throw new Error("Server error. Please try again later.");
+      } else {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
     }
 
     const data = await response.json();
 
-    // Show success message
+    if (!data.success) {
+      throw new Error(data.message || "Sale was not successful");
+    }
+
+    // Show success message with proper null checks
+    const totalAmount = data.data?.total_sale_amount || 0;
+    const profit = data.data?.profit || 0;
+    const profitText = profit >= 0 ? `Profit: ₹${profit.toFixed(2)}` : `Loss: ₹${Math.abs(profit).toFixed(2)}`;
+    
     showSuccessMessage(
-      `Successfully sold ${sellQuantity} shares of ${stockName}! Amount: ₹${(currentPrice * sellQuantity).toFixed(2)}`
+      `✅ Successfully sold ${sellQuantity} shares of ${stockName} at ₹${sellPrice.toFixed(2)} each! Total: ₹${totalAmount.toFixed(2)} (${profitText})`
     );
 
     // Reset form and close modal
     resetSellStockForm();
     closeModal(document.getElementById("entry-modal"));
 
-    // --- FORCE UI REFRESH ---
-    // 1. Reload investments and wallet balance
-    await loadInvestments();
-    await fetchWalletBalance();
-
-    // 2. Force wallet display update
-    displayWalletBalance();
-
-    // 3. Log for debugging
-    console.log("Sell complete. Investments and wallet should be updated.");
+    // Refresh data and charts
+    setTimeout(async () => {
+      try {
+        await loadInvestments();
+        await fetchWalletBalance();
+        displayWalletBalance();
+        refreshChartsAndUI();
+        console.log("Data refreshed after stock sale");
+      } catch (refreshError) {
+        console.error("Error refreshing data:", refreshError);
+      }
+    }, 500);
 
   } catch (error) {
     console.error("Error selling stock:", error);
-    showErrorMessage(error.message || "Failed to sell stock. Please try again.");
+    showErrorMessage(`❌ ${error.message || "Failed to sell stock. Please try again."}`);
   } finally {
-    if (sellBtn) sellBtn.disabled = false;
+    if (sellBtn) {
+      sellBtn.disabled = false;
+      sellBtn.textContent = "Sell Stock";
+    }
   }
 }
 
-// Document ready function
+// Automatically initialize price input changes
+const stockPriceInput = document.getElementById("stock-price");
+const quantityInput = document.getElementById("sell-quantity");
+const totalCostSpan = document.getElementById("expected-return");
+
+if (stockPriceInput && quantityInput && totalCostSpan) {
+  stockPriceInput.addEventListener('input', () => {
+    const price = Number(stockPriceInput.value);
+    const quantity = Number(quantityInput.value);
+    const total = price * quantity;
+    totalCostSpan.value = `₹${total.toFixed(2)}`;
+  });
+
+  quantityInput.addEventListener('input', () => {
+    const price = Number(stockPriceInput.value);
+    const quantity = Number(quantityInput.value);
+    const total = price * quantity;
+    totalCostSpan.value = `₹${total.toFixed(2)}`;
+  });
+}
 document.addEventListener("DOMContentLoaded", () => {
   // Initialize Swiper
   const swiperContainer = document.querySelector('.swiper-container');
@@ -1509,6 +1998,20 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  // Add cancel button functionality for buy stock modal
+  const cancelBuyBtn = document.getElementById("close-debit-btn");
+  if (cancelBuyBtn) {
+    cancelBuyBtn.addEventListener("click", () => {
+      // Reset the form before closing
+      const buyForm = document.getElementById("debit-form");
+      if (buyForm) {
+        buyForm.reset();
+        document.getElementById("total-cost").textContent = "₹0.00";
+      }
+      closeModal(buyStockModal);
+    });
+  }
+
   // Show Wallet Modal
   if (walletBtn) {
     walletBtn.addEventListener("click", () => {
@@ -1589,12 +2092,12 @@ document.addEventListener("DOMContentLoaded", () => {
         toDate = pdfToDate.value;
         
         if (!fromDate || !toDate) {
-          alert('Please select both start and end dates for partial report');
+          showToastError('Please select both start and end dates for partial report');
           return;
         }
         
         if (new Date(fromDate) > new Date(toDate)) {
-          alert('End date must be after start date');
+          showToastError('End date must be after start date');
           return;
         }
       }
@@ -1671,12 +2174,18 @@ document.addEventListener("DOMContentLoaded", () => {
           // Hide modal
           closeModal(document.getElementById("debit-modal"));
           
-          // Reload data
+          // Reload data and refresh charts
           loadInvestments();
           fetchWalletBalance();
+          displayWalletBalance();
+          
+          // Refresh charts after brief delay to ensure data is loaded
+          setTimeout(() => {
+            refreshChartsAndUI();
+          }, 300);
           
           // Show success message
-          showSuccessMessage(`Successfully bought ${quantity} shares of ${stockName}`);
+          showSuccessMessage(`✅ Successfully bought ${quantity} shares of ${stockName} at ₹${buyPrice.toFixed(2)} each!`);
         } else {
           showErrorMessage(data.message || "Failed to buy stock");
         }
@@ -1720,14 +2229,24 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Add quantity input event listener for real-time calculations
   const quantityInput = document.getElementById('sell-quantity');
+  const sellPriceInput = document.getElementById('sell-price');
+  
   if (quantityInput) {
     quantityInput.addEventListener('input', () => {
-      const form = document.getElementById('sell-stock-form');
-      if (form && form.dataset.currentPrice) {
-        updateExpectedReturn(
-          parseFloat(form.dataset.currentPrice),
-          parseInt(quantityInput.value) || 0
-        );
+      const quantity = parseInt(quantityInput.value) || 0;
+      const price = parseFloat(sellPriceInput?.value) || 0;
+      if (quantity > 0 && price > 0) {
+        updateExpectedReturnForSell(price, quantity);
+      }
+    });
+  }
+
+  if (sellPriceInput) {
+    sellPriceInput.addEventListener('input', () => {
+      const quantity = parseInt(quantityInput?.value) || 0;
+      const price = parseFloat(sellPriceInput.value) || 0;
+      if (quantity > 0 && price > 0) {
+        updateExpectedReturnForSell(price, quantity);
       }
     });
   }

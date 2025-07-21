@@ -6,10 +6,12 @@
     <link rel="icon" href="/favicon.ico" type="image/x-icon">
     <title>Penny Pilot</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Righteous&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="Dashboard_style.css">
+    <!-- Toastify CSS -->
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
     <!-- Add authentication check script -->
     <script>
         // Check authentication on page load
@@ -64,22 +66,35 @@
         </div>
         
         <div class="sidebar-menu">
-            <a href="#" class="menu-item active">
-                <i class="fas fa-wallet"></i>
-                <span>Expenditure</span>
-            </a>
-            <a href="../Debts/debts.html" class="menu-item">
-                <i class="fas fa-hand-holding-usd"></i>
-                <span>Debts</span>
-            </a>
-            <a href="../Investment/Investments.html" class="menu-item">
-                <i class="fas fa-chart-line"></i>
-                <span>Investments</span>
-            </a>
-            <a href="../MoneyTransfer/moneytransfer.html" class="menu-item">
-                <i class="fas fa-exchange-alt"></i>
-                <span>Money Transfer</span>
-            </a>
+            <div class="menu-section">
+                <div class="menu-section-title">OVERVIEW</div>
+                <a href="#" class="menu-item active">
+                    <i class="fas fa-chart-pie"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="../Investment/Investments.html" class="menu-item">
+                    <i class="fas fa-trending-up"></i>
+                    <span>Investments</span>
+                </a>
+            </div>
+            <div class="menu-section">
+                <div class="menu-section-title">FINANCE</div>
+                <a href="../MoneyTransfer/moneytransfer.html" class="menu-item">
+                    <i class="fas fa-exchange-alt"></i>
+                    <span>Money Transfer</span>
+                </a>
+                <a href="../Debts/debts.html" class="menu-item">
+                    <i class="fas fa-hand-holding-usd"></i>
+                    <span>Debts</span>
+                </a>
+            </div>
+            <div class="menu-section">
+                <div class="menu-section-title">TEAM</div>
+                <a href="../Clients/clients.html" class="menu-item">
+                    <i class="fas fa-users"></i>
+                    <span>Clients</span>
+                </a>
+            </div>
         </div>
         
         <button class="logout-btn" id="logout-btn">
@@ -94,29 +109,44 @@
         <div class="static-content">
             <!-- Navbar -->
             <div class="navbar">
-                <div></div> <!-- Empty spacer -->
-                <div class="user-profile">
-                    <div class="user-avatar" id="profile-icon"></div>
-                    <div class="user-tooltip" id="username-tooltip"></div>
+                <div class="page-header">
+                    <h1 class="page-title">Dashboard</h1>
+                    <p class="page-subtitle">Welcome back, <span id="user-name">User</span></p>
+                </div>
+                <div class="navbar-actions">
+                    <div class="user-profile">
+                        <div class="user-avatar" id="profile-icon"></div>
+                        <div class="user-tooltip" id="username-tooltip"></div>
+                    </div>
                 </div>
             </div>
             
             <!-- Balance Cards -->
             <div class="balance-section">
-                <div class="balance-card wallet-card">
-                    <div class="balance-header">
-                        <i class="fas fa-wallet"></i>
-                        <span>Wallet Balance</span>
+                <div class="section-title">Accounts</div>
+                <div class="balance-grid">
+                    <div class="balance-card wallet-card">
+                        <div class="balance-header">
+                            <i class="fas fa-wallet"></i>
+                            <span>Main Savings</span>
+                        </div>
+                        <div class="balance-details">
+                            <div class="balance-amount" id="wallet-balance">₹26,540.25</div>
+                            <div class="balance-subtitle">Personal savings</div>
+                        </div>
                     </div>
-                    <div class="balance-amount" id="wallet-balance">₹0.00</div>
-                </div>
-                
-                <div class="balance-card emergency-card">
-                    <div class="balance-header">
-                        <i class="fas fa-piggy-bank"></i>
-                        <span>Emergency Fund</span>
+                    
+                    <div class="balance-card emergency-card">
+                        <div class="balance-header">
+                            <i class="fas fa-piggy-bank"></i>
+                            <span>Emergency Fund</span>
+                        </div>
+                        <div class="balance-details">
+                            <div class="balance-amount" id="emergency-balance">₹8,458.43</div>
+                            <div class="balance-subtitle">Emergency fund</div>
+                        </div>
                     </div>
-                    <div class="balance-amount" id="emergency-balance">₹0.00</div>
+                    
                 </div>
             </div>
             
@@ -134,20 +164,20 @@
                         <div class="swiper-wrapper">
                             <div class="swiper-slide">
                                 <div class="chart-container">
-                                    <div class="chart-wrapper">
+                                    <div class="chart-wrapper" data-title="Expense Categories">
                                         <canvas id="debitPieChart"></canvas>
                                     </div>
-                                    <div class="chart-wrapper">
+                                    <div class="chart-wrapper" data-title="Income Sources">
                                         <canvas id="creditPieChart"></canvas>
                                     </div>
                                 </div>
                             </div>
                             <div class="swiper-slide">
                                 <div class="chart-container">
-                                    <div class="chart-wrapper">
+                                    <div class="chart-wrapper" data-title="Monthly Expenses">
                                         <canvas id="debitBarChart"></canvas>
                                     </div>
-                                    <div class="chart-wrapper">
+                                    <div class="chart-wrapper" data-title="Monthly Income">
                                         <canvas id="creditBarChart"></canvas>
                                     </div>
                                 </div>
@@ -364,6 +394,9 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
     <script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
+    <!-- Toastify JS -->
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+    <script src="../utils/toastify-utils.js"></script>
     <script src="/utils/pdf-export.js"></script>
     <script src="Dashboard_script.js"></script>
 </body>

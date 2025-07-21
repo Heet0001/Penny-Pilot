@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Client Management - Penny Pilot</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="clients.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
+    <!-- Toastify CSS and JS -->
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+</head>
+<body>
+    <!-- Modern Clean Sidebar -->
+    <div class="sidebar">
+        <div class="sidebar-logo">
+            <div class="logo">
+                <div class="logo-icon">
+                    <i class="fas fa-coins"></i>
+                </div>
+                <div class="logo-text">Penny Pilot</div>
+            </div>
+        </div>
+        
+        <div class="sidebar-menu">
+            <div class="menu-section">
+                <div class="menu-section-title">OVERVIEW</div>
+                <a href="../Dashboard/dashboard.html" class="menu-item">
+                    <i class="fas fa-chart-pie"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="../Investment/Investments.html" class="menu-item">
+                    <i class="fas fa-trending-up"></i>
+                    <span>Investments</span>
+                </a>
+            </div>
+            <div class="menu-section">
+                <div class="menu-section-title">FINANCE</div>
+                <a href="../MoneyTransfer/moneytransfer.html" class="menu-item">
+                    <i class="fas fa-exchange-alt"></i>
+                    <span>Money Transfer</span>
+                </a>
+                <a href="../Debts/debts.html" class="menu-item">
+                    <i class="fas fa-hand-holding-usd"></i>
+                    <span>Debts</span>
+                </a>
+            </div>
+            <div class="menu-section">
+                <div class="menu-section-title">TEAM</div>
+                <a href="../Clients/clients.html" class="menu-item active">
+                    <i class="fas fa-users"></i>
+                    <span>Clients</span>
+                </a>
+            </div>
+        </div>
+        
+        <button class="logout-btn" id="logout-btn">
+            <i class="fas fa-sign-out-alt"></i>
+            <span>Logout</span>
+        </button>
+    </div>
+    
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Static Content (Upper Page) -->
+        <div class="static-content">
+            <!-- Modern Navbar -->
+            <div class="navbar">
+                <div class="page-header">
+                    <h1 class="page-title">Client Management</h1>
+                    <p class="page-subtitle">Manage your clients and track their activities</p>
+                </div>
+                <div class="navbar-actions">
+                    <div class="user-profile">
+                        <div class="user-avatar" id="profile-icon"></div>
+                        <div class="user-tooltip" id="username-tooltip"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Content Header -->
+            <div class="content-header">
+                <h2><i class="fas fa-users"></i> Client Management</h2>
+                <button class="btn btn-primary" onclick="openAddClientModal()">
+                    <i class="fas fa-plus"></i> Add Client
+                </button>
+            </div>
+
+            <!-- Client Statistics -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3 id="total-clients">0</h3>
+                        <p>Total Clients</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3 id="active-clients">0</h3>
+                        <p>Active Clients</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-coins"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3 id="revenue-collected">₹0</h3>
+                        <p>Overall Revenue Collected</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-minus-circle"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3 id="total-expenses">₹0</h3>
+                        <p>Total Expenses</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-rupee-sign"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3 id="total-revenue">₹0</h3>
+                    </div>
+                    <p>Net Revenue</p>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-exchange-alt"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3 id="transferred-to-wallet">₹0</h3>
+                    </div>
+                    <p>Transferred to Wallet</p>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-hand-holding-usd"></i>
+                    </div>
+                    <div class="stat-content" style="display: flex; align-items: center; gap: 8px;">
+                        <h3 id="money-left">₹0</h3>
+                        <button id="transfer-to-wallet-btn" class="btn btn-success" style="margin-left: 8px; font-size: 0.9em; padding: 4px 10px;">
+                            <i class="fas fa-wallet"></i> Transfer to Wallet
+                        </button>
+                    </div>
+                    <p>Money Left</p>
+                </div>
+            </div>
+
+            <!-- Client Filters -->
+            <div class="filters-section">
+                <div class="filter-group">
+                    <label for="client-status-filter">Status:</label>
+                    <select id="client-status-filter" onchange="filterClients()">
+                        <option value="all">All Clients</option>
+                        <option value="active">Active</option>
+                        <option value="inactive">Inactive</option>
+                        <option value="prospect">Prospect</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="client-type-filter">Type:</label>
+                    <select id="client-type-filter" onchange="filterClients()">
+                        <option value="all">All Types</option>
+                        <option value="individual">Individual</option>
+                        <option value="business">Business</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <input type="text" id="search-client" placeholder="Search clients..." oninput="searchClients()">
+                </div>
+                <div class="filter-group">
+                    <button class="btn btn-secondary" onclick="exportClientData()">
+                        <i class="fas fa-download"></i> Export PDF
+                    </button>
+                </div>
+            </div>
+            <div class="scroll-hint">
+                <i class="fas fa-chevron-down"></i>
+            </div>
+        </div>
+
+        <!-- Sliding Section -->
+        <div class="sliding-section">
+            <!-- Client List -->
+            <div class="client-list-section">
+                <div class="section-header">
+                    <h3>Client List</h3>
+                    <div class="view-toggle">
+                        <button class="view-btn active" onclick="setViewMode('grid')">
+                            <i class="fas fa-th-large"></i>
+                        </button>
+                        <button class="view-btn" onclick="setViewMode('table')">
+                            <i class="fas fa-list"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Grid View -->
+                <div id="clients-grid" class="clients-grid">
+                    <!-- Client cards will be populated here -->
+                </div>
+
+                <!-- Table View -->
+                <div id="clients-table" class="clients-table" style="display: none;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Type</th>
+                                <th>Email</th>
+                                <th>Phone</th>
+                                <th>Status</th>
+                                <th>Revenue</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="clients-table-body">
+                            <!-- Client rows will be populated here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Analytics Section -->
+            <div class="analytics-section">
+                <div class="chart-container">
+                    <h3>Client Revenue Distribution</h3>
+                    <canvas id="revenueChart"></canvas>
+                </div>
+                <div class="chart-container">
+                    <h3>Client Status Distribution</h3>
+                    <canvas id="statusChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add/Edit Client Modal -->
+    <div id="clientModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modal-title">Add New Client</h2>
+                <span class="close" onclick="closeClientModal()">&times;</span>
+            </div>
+            <form id="clientForm">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="client-type">Client Type <span class="required">*</span></label>
+                        <select id="client-type" required onchange="toggleClientFields()">
+                            <option value="individual">Individual</option>
+                            <option value="business">Business</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="client-status">Status <span class="required">*</span></label>
+                        <select id="client-status" required>
+                            <option value="prospect">Prospect</option>
+                            <option value="active">Active</option>
+                            <option value="inactive">Inactive</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Individual Client Fields -->
+                <div id="individual-fields" class="form-section">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="first-name">First Name <span class="required">*</span></label>
+                            <input type="text" id="first-name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="last-name">Last Name <span class="required">*</span></label>
+                            <input type="text" id="last-name" required>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Business Client Fields -->
+                <div id="business-fields" class="form-section" style="display: none;">
+                    <div class="form-group">
+                        <label for="company-name">Company Name <span class="required">*</span></label>
+                        <input type="text" id="company-name">
+                    </div>
+                </div>
+
+                <!-- Common Fields -->
+                <div class="form-section">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="email">Email <span class="required">*</span></label>
+                            <input type="email" id="email" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="phone">Phone <span class="required">*</span></label>
+                            <input type="tel" id="phone" required>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Address Fields -->
+                <div class="form-section">
+                    <h4>Address Information</h4>
+                    <div class="form-group">
+                        <label for="address">Address</label>
+                        <textarea id="address" rows="3"></textarea>
+                    </div>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="city">City</label>
+                            <input type="text" id="city">
+                        </div>
+                        <div class="form-group">
+                            <label for="state">State</label>
+                            <input type="text" id="state">
+                        </div>
+                        <div class="form-group">
+                            <label for="postal-code">Postal Code</label>
+                            <input type="text" id="postal-code">
+                        </div>
+                        <div class="form-group">
+                            <label for="country">Country</label>
+                            <input type="text" id="country" value="India">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Financial Information -->
+                <div class="form-section">
+                    <h4>Financial Information</h4>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="credit-limit">Credit Limit (₹)</label>
+                            <input type="number" id="credit-limit" min="0" step="0.01">
+                        </div>
+                        <div class="form-group">
+                            <label for="payment-terms">Payment Terms</label>
+                            <input type="text" id="payment-terms" placeholder="e.g., Net 30">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Additional Information -->
+                <div class="form-section">
+                    <div class="form-group">
+                        <label for="notes">Notes</label>
+                        <textarea id="notes" rows="3" placeholder="Additional notes about the client..."></textarea>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeClientModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Save Client
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Transaction Modal -->
+    <div id="transactionModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Add Transaction</h2>
+                <span class="close" onclick="closeTransactionModal()">&times;</span>
+            </div>
+            <form id="transactionForm">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="transaction-type">Transaction Type <span class="required">*</span></label>
+                        <select id="transaction-type" required>
+                            <option value="income">Income</option>
+                            <option value="expense">Expense</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="amount">Amount (₹) <span class="required">*</span></label>
+                        <input type="number" id="amount" required min="0" step="0.01">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="description">Description <span class="required">*</span></label>
+                    <input type="text" id="description" required>
+                </div>
+                <div class="form-group">
+                    <label for="transaction-date">Date <span class="required">*</span></label>
+                    <input type="date" id="transaction-date" required>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeTransactionModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Add Transaction
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Invoice Modal -->
+    <div id="invoiceModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Create Invoice</h2>
+                <span class="close" onclick="closeInvoiceModal()">&times;</span>
+            </div>
+            <form id="invoiceForm">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="invoice-amount">Amount (₹) <span class="required">*</span></label>
+                        <input type="number" id="invoice-amount" required min="0" step="0.01">
+                    </div>
+                    <div class="form-group">
+                        <label for="invoice-due-date">Due Date <span class="required">*</span></label>
+                        <input type="date" id="invoice-due-date" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="invoice-description">Description <span class="required">*</span></label>
+                    <input type="text" id="invoice-description" required>
+                </div>
+                <div class="form-group">
+                    <label for="invoice-status">Status <span class="required">*</span></label>
+                    <select id="invoice-status" required>
+                        <option value="draft">Draft</option>
+                        <option value="sent">Sent</option>
+                        <option value="paid">Paid</option>
+                        <option value="overdue">Overdue</option>
+                    </select>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeInvoiceModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Create Invoice
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add Transfer to Wallet Modal -->
+    <div id="transferWalletModal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>Transfer Revenue to Wallet</h2>
+          <span class="close" onclick="closeTransferWalletModal()">&times;</span>
+        </div>
+        <form id="transferWalletForm">
+          <div class="form-group">
+            <label for="transfer-wallet-amount">Amount to Transfer (₹)</label>
+            <input type="number" id="transfer-wallet-amount" min="1" step="0.01" required>
+          </div>
+          <div class="form-actions">
+            <button type="button" class="btn btn-secondary" onclick="closeTransferWalletModal()">Cancel</button>
+            <button type="submit" class="btn btn-primary"><i class="fas fa-wallet"></i> Transfer</button>
+          </div>
+        </form>
+      </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+    <script src="../utils/toastify-utils.js"></script>
+    <script src="clients.js"></script>
+</body>
+</html>
