@@ -68,6 +68,14 @@ flowchart TD
 
 ---
 
+## 🗄️ Database ER Diagram
+
+The following diagram illustrates the database structure for Penny Pilot:
+
+![Database ER Diagram](../../SE%20PROJECT%20DOCUMENTATION/ER-diagram.png)
+
+---
+
 ## ⚡ Quick Start
 
 ### 1. Prerequisites
