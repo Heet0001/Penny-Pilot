@@ -859,7 +859,7 @@ async function handleTransferWalletSubmit(event) {
     try {
         const BASE_URL = window.location.hostname === "localhost"
             ? "http://localhost:3000"
-            : "https://penny-pilot-production.up.railway.app";
+            : window.location.origin;
 
         // Record this transfer as a credit entry. The /add-credit endpoint also
         // updates the wallet balance server-side, so we do NOT separately call

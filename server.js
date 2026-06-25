@@ -134,11 +134,17 @@ app.use("/HR", express.static(hrDir)) // Serve HR & Payroll directory
 app.use(express.static(path.join(__dirname, "public")))
 
 // MySQL connection pool
+// MYSQLPORT defaults to 3306 (Railway internal MySQL); set explicitly for
+// providers like TiDB Cloud / Aiven / PlanetScale that use custom ports.
+// MYSQLSSL=true enables TLS, required by most managed providers other than
+// Railway's internal network.
 const db = mysql.createPool({
   host: process.env.MYSQLHOST,
+  port: process.env.MYSQLPORT ? Number(process.env.MYSQLPORT) : 3306,
   user: process.env.MYSQLUSER,
   password: process.env.MYSQLPASSWORD,
   database: process.env.MYSQLDATABASE,
+  ssl: process.env.MYSQLSSL === 'true' ? { rejectUnauthorized: true } : undefined,
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0,

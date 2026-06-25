@@ -3,7 +3,7 @@
 
 const INV_BASE_URL = window.location.hostname === 'localhost'
     ? 'http://localhost:3000'
-    : 'https://penny-pilot-production.up.railway.app';
+    : window.location.origin;
 
 let invCurrentUser = null;
 let invSuppliers = [];

@@ -7,7 +7,7 @@ let editingMemberId = null;
 
 const TEAM_BASE_URL = window.location.hostname === 'localhost'
     ? 'http://localhost:3000'
-    : 'https://penny-pilot-production.up.railway.app';
+    : window.location.origin;
 
 // Initialization
 

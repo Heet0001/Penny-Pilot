@@ -5,7 +5,7 @@
 (function () {
     const NOTIF_BASE_URL = window.location.hostname === 'localhost'
         ? 'http://localhost:3000'
-        : 'https://penny-pilot-production.up.railway.app';
+        : window.location.origin;
 
     function getCurrentUser() {
         try {
