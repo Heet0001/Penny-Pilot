@@ -156,7 +156,7 @@ function loadWalletBalance() {
     .then((data) => {
       const walletBalanceElement = document.getElementById("wallet-balance")
       if (walletBalanceElement) {
-        walletBalanceElement.textContent = `$${Number(data.balance || 0).toFixed(2)}`
+        walletBalanceElement.textContent = `₹${Number(data.balance || 0).toFixed(2)}`
       }
     })
     .catch((error) => console.error("Error fetching wallet balance:", error))
@@ -337,7 +337,7 @@ async function sendMoneyTransfer() {
     }
 
     // Create transfer
-    console.log(`Sending transfer to ${recipientEmail} for $${amount} as ${transferType}`)
+    console.log(`Sending transfer to ${recipientEmail} for ₹${amount} as ${transferType}`)
     const transferResponse = await fetch(`${BASE_URL}/create-money-transfer`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -425,7 +425,7 @@ function displayPendingTransfers(transfers) {
       <div class="transfer-info">
         <div class="transfer-header">
           <span class="transfer-name">From: ${transfer.sender_name}</span>
-          <span class="transfer-amount" style="color: #00B894">+$${formattedAmount}</span>
+          <span class="transfer-amount" style="color: #00B894">+₹${formattedAmount}</span>
         </div>
         <div class="transfer-details">
           <span class="transfer-type">${transfer.transfer_type}</span>
@@ -548,7 +548,7 @@ function loadRecentTransfers() {
           <div class="transfer-info">
             <div class="transfer-header">
               <span class="transfer-name">From: ${otherParty}</span>
-              <span class="transfer-amount" style="color: ${amountColor}">${amountPrefix}$${formattedAmount}</span>
+              <span class="transfer-amount" style="color: ${amountColor}">${amountPrefix}₹${formattedAmount}</span>
             </div>
             <div class="transfer-details">
               <span class="transfer-type">${transfer.transfer_type}</span>
@@ -958,7 +958,7 @@ function loadTransferHistory(type) {
               <div class="transfer-icon">
                 <i class="fas ${iconClass}"></i>
               </div>
-              <div class="transfer-amount">$${amount}</div>
+              <div class="transfer-amount">₹${amount}</div>
             </div>
             <div class="transfer-card-body">
               <div class="transfer-detail">
@@ -1118,7 +1118,7 @@ function loadWalletBalanceHistory() {
       const walletBalanceElement = document.getElementById("wallet-balance")
       if (walletBalanceElement) {
         const balance = data.balance || 0
-        walletBalanceElement.textContent = `$${Number(balance).toFixed(2)}`
+        walletBalanceElement.textContent = `₹${Number(balance).toFixed(2)}`
       }
     })
     .catch((error) => {
@@ -1472,7 +1472,7 @@ function generateTransferPdf(currentUser, reportType, fromDate, toDate, loadingO
                   doc.setFontSize(12)
                   doc.text(`User: ${currentUser.name}`, 20, 40)
                   doc.text(`Generated on: ${formatDateForPdf(new Date())}`, 20, 46)
-                  doc.text(`Current Wallet Balance: $${Number.parseFloat(walletData.balance).toFixed(2)}`, 20, 52)
+                  doc.text(`Current Wallet Balance: ₹${Number.parseFloat(walletData.balance).toFixed(2)}`, 20, 52)
                   
                   // Add summary
                   doc.setFontSize(14)
@@ -1488,10 +1488,10 @@ function generateTransferPdf(currentUser, reportType, fromDate, toDate, loadingO
                   const receivedAmount = receivedTransfers.reduce((sum, t) => sum + Number.parseFloat(t.amount), 0)
                   const pendingAmount = pendingTransfers.reduce((sum, t) => sum + Number.parseFloat(t.amount), 0)
                   
-                  doc.text(`Total Amount Sent: $${sentAmount.toFixed(2)}`, 30, 88)
-                  doc.text(`Total Amount Received: $${receivedAmount.toFixed(2)}`, 30, 94)
-                  doc.text(`Pending Amount: $${pendingAmount.toFixed(2)}`, 30, 100)
-                  doc.text(`Net Transfer: $${(receivedAmount - sentAmount).toFixed(2)}`, 30, 106)
+                  doc.text(`Total Amount Sent: ₹${sentAmount.toFixed(2)}`, 30, 88)
+                  doc.text(`Total Amount Received: ₹${receivedAmount.toFixed(2)}`, 30, 94)
+                  doc.text(`Pending Amount: ₹${pendingAmount.toFixed(2)}`, 30, 100)
+                  doc.text(`Net Transfer: ₹${(receivedAmount - sentAmount).toFixed(2)}`, 30, 106)
                   
                   // Add sent transfers table
                   let yPos = 120
@@ -1504,7 +1504,7 @@ function generateTransferPdf(currentUser, reportType, fromDate, toDate, loadingO
                     const sentTableData = sentTransfers.map((transfer) => [
                       formatDateForPdf(transfer.created_at),
                       transfer.recipient_name,
-                      `$${Number.parseFloat(transfer.amount).toFixed(2)}`,
+                      `₹${Number.parseFloat(transfer.amount).toFixed(2)}`,
                       transfer.transfer_type,
                       transfer.status,
                       transfer.description || "-"
@@ -1537,7 +1537,7 @@ function generateTransferPdf(currentUser, reportType, fromDate, toDate, loadingO
                     const receivedTableData = receivedTransfers.map((transfer) => [
                       formatDateForPdf(transfer.created_at),
                       transfer.sender_name,
-                      `$${Number.parseFloat(transfer.amount).toFixed(2)}`,
+                      `₹${Number.parseFloat(transfer.amount).toFixed(2)}`,
                       transfer.transfer_type,
                       transfer.status,
                       transfer.description || "-"
@@ -1570,7 +1570,7 @@ function generateTransferPdf(currentUser, reportType, fromDate, toDate, loadingO
                     const pendingTableData = pendingTransfers.map((transfer) => [
                       formatDateForPdf(transfer.created_at),
                       transfer.sender_name,
-                      `$${Number.parseFloat(transfer.amount).toFixed(2)}`,
+                      `₹${Number.parseFloat(transfer.amount).toFixed(2)}`,
                       transfer.transfer_type,
                       "Pending",
                       transfer.description || "-"

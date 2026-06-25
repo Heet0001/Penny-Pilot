@@ -1816,7 +1816,7 @@ app.post("/create-money-transfer", async (req, res) => {
   } = req.body
 
   console.log(
-    `[TRANSFER] Creating transfer from user ${sender_id} to ${recipient_email} for $${amount} as ${transfer_type}`,
+    `[TRANSFER] Creating transfer from user ${sender_id} to ${recipient_email} for ₹${amount} as ${transfer_type}`,
   )
 
   try {
@@ -2136,69 +2136,85 @@ app.post("/respond-to-transfer", (req, res) => {
                   return
                 }
 
-                // Record debit entry for sender. The 'Money Transfer' category
+                // Record debit/credit entries. The 'Money Transfer' category
                 // must exist in both credit_entries.category and
                 // debit_entries.category ENUMs; see penny_pilot_unified.sql.
                 // We do NOT reference a recipient_id column because the schema
                 // doesn't have one - the recipient is encoded in description.
                 const transferDesc = (transferData.description && String(transferData.description).trim())
                   || "No description"
-                const debitQuery = `
-                  INSERT INTO debit_entries
-                    (user_id, amount, category, entry_date, description)
-                  VALUES (?, ?, 'Money Transfer', ?, ?)
-                `
-                db.query(
-                  debitQuery,
-                  [
-                    sender_id,
-                    transferAmount,
-                    transferDate,
-                    `Transfer to user ID ${recipient_id}: ${transferDesc}`,
-                  ],
-                  (debitErr) => {
-                    if (debitErr) {
-                      console.error(
-                        `[TRANSFER] FAILED to insert debit_entries row for sender ${sender_id} on transfer #${transfer_id}:`,
-                        debitErr,
-                      )
-                    }
 
-                    const creditQuery = `
-                      INSERT INTO credit_entries
+                // Look up both display names so the dashboard shows
+                // "Transfer to Poojan" instead of "Transfer to user ID 2".
+                db.query(
+                  "SELECT id, name FROM users WHERE id IN (?, ?)",
+                  [sender_id, recipient_id],
+                  (nameErr, nameRows) => {
+                    const nameById = {}
+                    if (!nameErr && Array.isArray(nameRows)) {
+                      for (const row of nameRows) nameById[row.id] = row.name
+                    }
+                    const senderName = nameById[sender_id] || `user ID ${sender_id}`
+                    const recipientName = nameById[recipient_id] || `user ID ${recipient_id}`
+
+                    const debitQuery = `
+                      INSERT INTO debit_entries
                         (user_id, amount, category, entry_date, description)
                       VALUES (?, ?, 'Money Transfer', ?, ?)
                     `
                     db.query(
-                      creditQuery,
+                      debitQuery,
                       [
-                        recipient_id,
+                        sender_id,
                         transferAmount,
                         transferDate,
-                        `Received from user ID ${sender_id}: ${transferDesc}`,
+                        `Transfer to ${recipientName}: ${transferDesc}`,
                       ],
-                      (creditErr) => {
-                        if (creditErr) {
+                      (debitErr) => {
+                        if (debitErr) {
                           console.error(
-                            `[TRANSFER] FAILED to insert credit_entries row for recipient ${recipient_id} on transfer #${transfer_id}:`,
-                            creditErr,
+                            `[TRANSFER] FAILED to insert debit_entries row for sender ${sender_id} on transfer #${transfer_id}:`,
+                            debitErr,
                           )
                         }
 
-                        console.log(`[TRANSFER] Successfully processed transfer #${transfer_id}:
-                          Amount: ${transferAmount}
-                          From: ${sender_id}
-                          To: ${recipient_id}
-                          Status: ${response}
-                          DebitEntryOk: ${!debitErr}
-                          CreditEntryOk: ${!creditErr}`)
+                        const creditQuery = `
+                          INSERT INTO credit_entries
+                            (user_id, amount, category, entry_date, description)
+                          VALUES (?, ?, 'Money Transfer', ?, ?)
+                        `
+                        db.query(
+                          creditQuery,
+                          [
+                            recipient_id,
+                            transferAmount,
+                            transferDate,
+                            `Received from ${senderName}: ${transferDesc}`,
+                          ],
+                          (creditErr) => {
+                            if (creditErr) {
+                              console.error(
+                                `[TRANSFER] FAILED to insert credit_entries row for recipient ${recipient_id} on transfer #${transfer_id}:`,
+                                creditErr,
+                              )
+                            }
 
-                        res.json({
-                          success: true,
-                          message: `Transfer ${response} successfully`,
-                          transfer_id: transfer_id,
-                          entries_recorded: !debitErr && !creditErr,
-                        })
+                            console.log(`[TRANSFER] Successfully processed transfer #${transfer_id}:
+                              Amount: ${transferAmount}
+                              From: ${senderName} (${sender_id})
+                              To: ${recipientName} (${recipient_id})
+                              Status: ${response}
+                              DebitEntryOk: ${!debitErr}
+                              CreditEntryOk: ${!creditErr}`)
+
+                            res.json({
+                              success: true,
+                              message: `Transfer ${response} successfully`,
+                              transfer_id: transfer_id,
+                              entries_recorded: !debitErr && !creditErr,
+                            })
+                          },
+                        )
                       },
                     )
                   },
