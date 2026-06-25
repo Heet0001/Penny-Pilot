@@ -3,95 +3,131 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Penny Pilot - Debts</title>
+    <title>Debts · Penny Pilot</title>
     <link rel="icon" href="/favicon.ico" type="image/x-icon">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Righteous&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.min.css">
-    <link rel="stylesheet" href="debt_style.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="../utils/pdf-export.js"></script>
 
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap" rel="stylesheet">
+
+    <!-- Icons + Swiper -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.min.css">
+
+    <!-- Premium Theme -->
+    <link rel="stylesheet" href="../utils/theme.css">
+    <link rel="stylesheet" href="debt_style.css">
+
+    <!-- Charts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Toastify (professional notifications) -->
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+    <script src="../utils/toastify-utils.js"></script>
 </head>
 <body>
-    <!-- Glassmorphic Sidebar -->
+    <!-- Floating Sidebar -->
     <div class="sidebar">
         <div class="sidebar-logo">
             <div class="logo">
-                <div class="logo-icon">
-                    <i class="fas fa-coins"></i>
-                </div>
+                <div class="logo-icon"><i class="fas fa-coins"></i></div>
                 <div class="logo-text">Penny Pilot</div>
             </div>
         </div>
-        
+
         <div class="sidebar-menu">
-            <a href="../Dashboard/dashboard.html" class="menu-item">
-                <i class="fas fa-wallet"></i>
-                <span>Expenditure</span>
-            </a>
-            <a href="#" class="menu-item active">
-                <i class="fas fa-hand-holding-usd"></i>  
-                <span>Debts</span>
-            </a>
-            <a href="../Investment/Investments.html" class="menu-item">
-                <i class="fas fa-chart-line"></i>
-                <span>Investments</span>
-            </a>
-            <a href="../MoneyTransfer/moneytransfer.html" class="menu-item">
-                <i class="fas fa-exchange-alt"></i>
-                <span>Money Transfer</span>
-            </a>
+            <div class="menu-section">
+                <div class="menu-section-title">Overview</div>
+                <a href="../Dashboard/dashboard.html" class="menu-item">
+                    <i class="fas fa-chart-pie"></i><span>Dashboard</span>
+                </a>
+                <a href="../Investment/Investments.html" class="menu-item">
+                    <i class="fas fa-arrow-trend-up"></i><span>Investments</span>
+                </a>
+            </div>
+            <div class="menu-section">
+                <div class="menu-section-title">Finance</div>
+                <a href="../MoneyTransfer/moneytransfer.html" class="menu-item">
+                    <i class="fas fa-right-left"></i><span>Money Transfer</span>
+                </a>
+                <a href="#" class="menu-item active">
+                    <i class="fas fa-hand-holding-dollar"></i><span>Debts</span>
+                </a>
+            </div>
+            <div class="menu-section">
+                <div class="menu-section-title">Workspace</div>
+                <a href="../Clients/clients.html" class="menu-item">
+                    <i class="fas fa-users"></i><span>Clients</span>
+                </a>
+                <a href="../Inventory/inventory.html" class="menu-item">
+                    <i class="fas fa-boxes-stacked"></i><span>Inventory</span>
+                </a>
+                <a href="../HR/hr.html" class="menu-item">
+                    <i class="fas fa-id-badge"></i><span>HR &amp; Payroll</span>
+                </a>
+            </div>
         </div>
-        
-        <button class="logout-btn">
-            <i class="fas fa-sign-out-alt"></i>
-            <span>Logout</span>
-        </button>
+
+        <div class="logout-container">
+            <button class="logout-btn" id="logout-btn">
+                <i class="fas fa-arrow-right-from-bracket"></i><span>Sign Out</span>
+            </button>
+        </div>
     </div>
-    
+
     <!-- Main Content -->
     <div class="main-content">
-        <!-- Static Content (Upper Page) -->
         <div class="static-content">
-            <!-- Navbar -->
             <div class="navbar">
-                <div></div> <!-- Empty spacer -->
-                <div class="user-profile">
-                    <div class="user-avatar" id="profile-icon"></div>
-                    <div class="user-tooltip" id="username-tooltip"></div>
+                <div class="page-header">
+                    <h1 class="page-title">Debts</h1>
+                    <p class="page-subtitle">Track money you owe and is owed to you, with interest</p>
+                </div>
+                <div class="navbar-actions">
+                    <button class="notification-btn" id="debt-notification-toggle" aria-label="Debt notifications">
+                        <i class="fas fa-bell"></i>
+                        <span class="notification-badge" id="debt-notification-count" style="display: none;">0</span>
+                    </button>
+                    <div class="user-profile">
+                        <div class="user-avatar" id="profile-icon"></div>
+                        <div class="user-tooltip" id="username-tooltip"></div>
+                    </div>
+                    <div class="debt-notification-panel" id="debt-notification-container" style="display: none;"></div>
                 </div>
             </div>
-            
+
             <!-- Balance Cards -->
             <div class="balance-section">
                 <div class="balance-card wallet-card">
                     <div class="balance-header">
-                        <i class="fas fa-hand-holding-usd"></i>
+                        <i class="fas fa-hand-holding-dollar"></i>
                         <span>Debt Given</span>
                     </div>
                     <div class="balance-amount">₹0.00</div>
+                    <div class="balance-subtext">Total lent out</div>
                 </div>
-                
+
                 <div class="balance-card emergency-card">
                     <div class="balance-header">
                         <i class="fas fa-money-bill-wave"></i>
                         <span>Debt Taken</span>
                     </div>
                     <div class="balance-amount">₹0.00</div>
+                    <div class="balance-subtext">Total borrowed</div>
                 </div>
             </div>
-            
-            <!-- Charts Section -->
+
+            <!-- Charts -->
             <div class="charts-section">
                 <div class="charts-container">
                     <div class="export-actions">
                         <button class="export-pdf-btn" id="export-pdf-btn">
-                            <i class="fas fa-file-pdf"></i>
-                            <span>Export PDF</span>
+                            <i class="fas fa-file-pdf"></i><span>Export PDF</span>
                         </button>
                     </div>
-                    
+
                     <div class="swiper-container">
                         <div class="swiper-wrapper">
                             <div class="swiper-slide">
@@ -114,51 +150,55 @@
                         <div class="swiper-button-next"></div>
                         <div class="swiper-button-prev"></div>
                     </div>
-                </div>            
-            </div>
-            <div class="scroll-hint">
-                <i class="fas fa-chevron-down"></i>
+                </div>
             </div>
         </div>
-        
-        <!-- Sliding Section (Lower Page) -->
+
+        <!-- Transactions -->
         <div class="sliding-section">
             <div class="transactions-section">
                 <div class="transactions-container">
                     <div class="section-header">
                         <div class="section-title">Recent Debt Transactions</div>
-                        <div class="transaction-count" style="font-size: 14px; color: #7F8C8D;">Last 30 days</div>
+                        <div class="section-actions">
+                            <div class="date-filter-container">
+                                <label for="debt-from-date">From</label>
+                                <input type="date" id="debt-from-date" class="date-filter-input">
+                                <label for="debt-to-date">To</label>
+                                <input type="date" id="debt-to-date" class="date-filter-input">
+                                <button id="apply-debt-filter" class="filter-btn">
+                                    <i class="fas fa-filter"></i> Filter
+                                </button>
+                                <button id="clear-debt-filter" class="filter-btn">
+                                    <i class="fas fa-times"></i> Clear
+                                </button>
+                            </div>
+                        </div>
                     </div>
-                    
-                    <div class="transaction-list" id="combined-debt-list">
-                        <!-- Transactions will be loaded here -->
-                    </div>
+
+                    <div class="transaction-list" id="combined-debt-list"></div>
                 </div>
             </div>
         </div>
     </div>
-    
-    <!-- Add Button -->
+
+    <!-- FAB -->
     <button class="add-button" id="addButton">
         <i class="fas fa-plus" id="addIcon"></i>
     </button>
-    
-    <!-- Add Options -->
+
     <div class="add-options" id="addOptions">
         <div class="add-option option-credit" onclick="showModal('entry-modal')">
-            <i class="fas fa-hand-holding-usd"></i>
-            <span>Receive Debt</span>
+            <i class="fas fa-arrow-down"></i><span>Receive Debt</span>
         </div>
         <div class="add-option option-debit" onclick="showModal('debit-modal')">
-            <i class="fas fa-money-bill-wave"></i>
-            <span>Give Debt</span>
+            <i class="fas fa-arrow-up"></i><span>Give Debt</span>
         </div>
         <div class="add-option option-emergency" onclick="showModal('collect-debt-modal')">
-            <i class="fas fa-exchange-alt"></i>
-            <span>Collect/Return Debt</span>
+            <i class="fas fa-right-left"></i><span>Collect / Return</span>
         </div>
     </div>
-    
+
     <!-- PDF Export Modal -->
     <div id="pdf-export-modal" class="modal-overlay">
         <div class="modal-content">
@@ -180,7 +220,6 @@
                             <label for="partial-report">Partial Report</label>
                         </div>
                     </div>
-                    
                     <div class="partial-report-options" id="partial-report-options" style="display: none;">
                         <div class="form-group">
                             <label for="pdf-from-date">From Date</label>
@@ -191,7 +230,6 @@
                             <input type="date" id="pdf-to-date" class="form-control">
                         </div>
                     </div>
-                    
                     <div class="form-actions">
                         <button type="button" class="btn btn-outline" id="cancel-pdf-export">Cancel</button>
                         <button type="submit" class="btn btn-primary">Generate PDF</button>
@@ -200,7 +238,8 @@
             </div>
         </div>
     </div>
-    <!-- Receive Debt Modal -->
+
+    <!-- Receive Debt -->
     <div id="entry-modal" class="modal-overlay">
         <div class="modal-content">
             <div class="modal-header">
@@ -210,34 +249,45 @@
                 </button>
             </div>
             <div class="modal-body">
-                <label for="entry-amount">Amount:</label>
-                <input type="number" id="entry-amount" class="form-control" placeholder="Enter amount">
-
-                <label for="entry-counterparty">From Whom:</label>
-                <input type="text" id="entry-counterparty" class="form-control" placeholder="Enter name">
-
-                <label for="entry-interest">Interest Rate (%):</label>
-                <input type="number" id="entry-interest" class="form-control" placeholder="Enter interest rate">
-
-                <div class="radio-group">
-                    <div class="radio-option">
-                        <input type="radio" id="simple-interest" name="interest-type" value="simple" checked>
-                        <label for="simple-interest">Simple Interest</label>
-                    </div>
-                    <div class="radio-option">
-                        <input type="radio" id="compound-interest" name="interest-type" value="compound">
-                        <label for="compound-interest">Compound Interest</label>
+                <div class="form-group">
+                    <label for="entry-amount">Amount</label>
+                    <input type="number" id="entry-amount" class="form-control" placeholder="Enter amount">
+                </div>
+                <div class="form-group">
+                    <label for="entry-counterparty">From Whom</label>
+                    <input type="text" id="entry-counterparty" class="form-control" placeholder="Enter name">
+                </div>
+                <div class="form-group">
+                    <label for="entry-interest">Interest Rate (%)</label>
+                    <input type="number" id="entry-interest" class="form-control" placeholder="Enter interest rate">
+                </div>
+                <div class="form-group">
+                    <label>Interest Type</label>
+                    <div class="radio-group">
+                        <div class="radio-option">
+                            <input type="radio" id="simple-interest" name="interest-type" value="simple" checked>
+                            <label for="simple-interest">Simple</label>
+                        </div>
+                        <div class="radio-option">
+                            <input type="radio" id="compound-interest" name="interest-type" value="compound">
+                            <label for="compound-interest">Compound</label>
+                        </div>
                     </div>
                 </div>
-
-                <label for="entry-start-date">Start Date:</label>
-                <input type="date" id="entry-start-date" class="form-control">
-
-                <label for="entry-due-date">Due Date:</label>
-                <input type="date" id="entry-due-date" class="form-control">
-
-                <label for="entry-description">Description:</label>
-                <textarea id="entry-description" class="form-control" placeholder="Enter details"></textarea>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="entry-start-date">Start Date</label>
+                        <input type="date" id="entry-start-date" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label for="entry-due-date">Due Date</label>
+                        <input type="date" id="entry-due-date" class="form-control">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="entry-description">Description</label>
+                    <textarea id="entry-description" class="form-control" placeholder="Enter details"></textarea>
+                </div>
             </div>
             <div class="modal-buttons">
                 <button id="close-modal" class="modal-btn close-btn">Cancel</button>
@@ -246,7 +296,7 @@
         </div>
     </div>
 
-    <!-- Give Debt Modal -->
+    <!-- Give Debt -->
     <div id="debit-modal" class="modal-overlay">
         <div class="modal-content">
             <div class="modal-header">
@@ -256,34 +306,45 @@
                 </button>
             </div>
             <div class="modal-body">
-                <label for="debit-amount">Amount:</label>
-                <input type="number" id="debit-amount" class="form-control" placeholder="Enter amount">
-
-                <label for="debit-counterparty">To Whom:</label>
-                <input type="text" id="debit-counterparty" class="form-control" placeholder="Enter name">
-
-                <label for="debit-interest">Interest Rate (%):</label>
-                <input type="number" id="debit-interest" class="form-control" placeholder="Enter interest rate">
-
-                <div class="radio-group">
-                    <div class="radio-option">
-                        <input type="radio" id="debit-simple-interest" name="debit-interest-type" value="simple" checked>
-                        <label for="debit-simple-interest">Simple Interest</label>
-                    </div>
-                    <div class="radio-option">
-                        <input type="radio" id="debit-compound-interest" name="debit-interest-type" value="compound">
-                        <label for="debit-compound-interest">Compound Interest</label>
+                <div class="form-group">
+                    <label for="debit-amount">Amount</label>
+                    <input type="number" id="debit-amount" class="form-control" placeholder="Enter amount">
+                </div>
+                <div class="form-group">
+                    <label for="debit-counterparty">To Whom</label>
+                    <input type="text" id="debit-counterparty" class="form-control" placeholder="Enter name">
+                </div>
+                <div class="form-group">
+                    <label for="debit-interest">Interest Rate (%)</label>
+                    <input type="number" id="debit-interest" class="form-control" placeholder="Enter interest rate">
+                </div>
+                <div class="form-group">
+                    <label>Interest Type</label>
+                    <div class="radio-group">
+                        <div class="radio-option">
+                            <input type="radio" id="debit-simple-interest" name="debit-interest-type" value="simple" checked>
+                            <label for="debit-simple-interest">Simple</label>
+                        </div>
+                        <div class="radio-option">
+                            <input type="radio" id="debit-compound-interest" name="debit-interest-type" value="compound">
+                            <label for="debit-compound-interest">Compound</label>
+                        </div>
                     </div>
                 </div>
-
-                <label for="debit-start-date">Start Date:</label>
-                <input type="date" id="debit-start-date" class="form-control">
-
-                <label for="debit-due-date">Due Date:</label>
-                <input type="date" id="debit-due-date" class="form-control">
-
-                <label for="debit-description">Description:</label>
-                <textarea id="debit-description" class="form-control" placeholder="Enter details"></textarea>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="debit-start-date">Start Date</label>
+                        <input type="date" id="debit-start-date" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label for="debit-due-date">Due Date</label>
+                        <input type="date" id="debit-due-date" class="form-control">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="debit-description">Description</label>
+                    <textarea id="debit-description" class="form-control" placeholder="Enter details"></textarea>
+                </div>
             </div>
             <div class="modal-buttons">
                 <button id="close-debit-modal" class="modal-btn close-btn">Cancel</button>
@@ -292,41 +353,40 @@
         </div>
     </div>
 
-
-
-    <!-- Collect/Return Debt Modal -->
+    <!-- Collect / Return -->
     <div id="collect-debt-modal" class="modal-overlay">
         <div class="modal-content">
             <div class="modal-header">
-                <h2>Collect/Return Debt</h2>
+                <h2>Collect / Return Debt</h2>
                 <button class="modal-close" onclick="closeModal()">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
             <div class="modal-body">
                 <div class="form-group">
-                    <label for="debt-select">Select Debt:</label>
+                    <label for="debt-select">Select Debt</label>
                     <select id="debt-select" class="form-control" required>
                         <option value="" disabled selected>Select a debt</option>
-                        <!-- Options will be populated by JavaScript -->
                     </select>
                 </div>
-                
                 <div id="debt-details" style="display: none;">
-                    <p>Original Amount: <span id="original-amount">₹0.00</span></p>
-                    <p>Interest Accrued: <span id="interest-amount">₹0.00</span></p>
-                    <p>Remaining Amount: <span id="remaining-amount">₹0.00</span></p>
-                    <p>Due Date: <span id="due-date">N/A</span></p>
+                    <p>Original Amount <span id="original-amount">₹0.00</span></p>
+                    <p>Interest Accrued <span id="interest-amount">₹0.00</span></p>
+                    <p>Remaining Amount <span id="remaining-amount">₹0.00</span></p>
+                    <p>Due Date <span id="due-date">N/A</span></p>
                 </div>
-                
-                <label for="collection-amount">Amount:</label>
-                <input type="number" id="collection-amount" class="form-control" placeholder="Enter amount">
-                
-                <label for="collection-date">Date:</label>
-                <input type="date" id="collection-date" class="form-control">
-                
-                <label for="collection-description">Description:</label>
-                <textarea id="collection-description" class="form-control" placeholder="Enter details"></textarea>
+                <div class="form-group">
+                    <label for="collection-amount">Amount</label>
+                    <input type="number" id="collection-amount" class="form-control" placeholder="Enter amount">
+                </div>
+                <div class="form-group">
+                    <label for="collection-date">Date</label>
+                    <input type="date" id="collection-date" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label for="collection-description">Description</label>
+                    <textarea id="collection-description" class="form-control" placeholder="Enter details"></textarea>
+                </div>
             </div>
             <div class="modal-buttons">
                 <button id="close-collect-modal" class="modal-btn close-btn">Cancel</button>
@@ -335,23 +395,31 @@
         </div>
     </div>
 
-    <!-- Debt Details Modal -->
+    <!-- Debt Details -->
     <div id="debt-details-modal" class="modal-overlay">
         <div class="modal-content">
-            <h2>Debt Details</h2>
-            <div id="debt-details-content"></div>
+            <div class="modal-header">
+                <h2>Debt Details</h2>
+                <button class="modal-close" onclick="closeModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="debt-details-content"></div>
+            </div>
             <div class="modal-buttons">
                 <button id="close-details-modal" class="modal-btn close-btn">Close</button>
             </div>
         </div>
     </div>
-    <!-- Add these in your HTML head or before your script -->
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <script src="../utils/pdf-export.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/swiper/swiper-bundle.min.js"></script>
+    <script src="../utils/premium-charts.js"></script>
     <script src="debts_script.js"></script>
-
+    <script src="../utils/notifications-widget.js"></script>
 </body>
 </html>

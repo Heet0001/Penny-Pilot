@@ -3,127 +3,99 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Penny Pilot - Investments</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Righteous&display=swap" rel="stylesheet">
-  
-    <link rel="icon" href="data:;base64,iVBORw0KGgo=">
+    <title>Investments · Penny Pilot</title>
     <link rel="icon" href="/favicon.ico" type="image/x-icon">
 
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap" rel="stylesheet">
+
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Swiper + Toastify -->
     <link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.min.css">
-    <link rel="stylesheet" href="investment_style.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+
+    <!-- Charts + libs -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
-    <style>
-        /* Additional investment-specific styles */
 
-        
-        .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.5);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-        }
-        
-        .modal-content {
-            background: white;
-            border-radius: 15px;
-            padding: 25px;
-            width: 450px;
-            max-width: 90%;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-        }
-        
-        .hidden {
-            opacity: 0;
-            visibility: hidden;
-            transition: all 0.3s ease;
-        }
-        
-        .modal-buttons {
-            display: flex;
-            justify-content: flex-end;
-            gap: 10px;
-            margin-top: 20px;
-        }
-        
-        .modal-btn {
-            padding: 10px 20px;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        
-        .close-btn {
-            background: #f5f6fa;
-            border: 1px solid #ddd;
-        }
-        
-        .save-btn {
-            background: #6C5CE7;
-            color: white;
-            border: none;
-        }
-    </style>
+    <!-- Premium Theme -->
+    <link rel="stylesheet" href="../utils/theme.css">
+    <link rel="stylesheet" href="investment_style.css">
 </head>
 <body>
-    <!-- Glassmorphic Sidebar -->
+    <!-- Floating Sidebar -->
     <div class="sidebar">
         <div class="sidebar-logo">
             <div class="logo">
-                <div class="logo-icon">
-                    <i class="fas fa-coins"></i>
-                </div>
+                <div class="logo-icon"><i class="fas fa-coins"></i></div>
                 <div class="logo-text">Penny Pilot</div>
             </div>
         </div>
-        
+
         <div class="sidebar-menu">
-            <a href="../Dashboard/dashboard.html" class="menu-item">
-                <i class="fas fa-wallet"></i>
-                <span>Expenditure</span>
-            </a>
-            <a href="../Debts/debts.html" class="menu-item">
-                <i class="fas fa-hand-holding-usd"></i>
-                <span>Debts</span>
-            </a>
-            <a href="#" class="menu-item active">
-                <i class="fas fa-chart-line"></i>
-                <span>Investments</span>
-            </a>
-            <a href="../MoneyTransfer/moneytransfer.html" class="menu-item">
-                <i class="fas fa-exchange-alt"></i>
-                <span>Money Transfer</span>
-            </a>
+            <div class="menu-section">
+                <div class="menu-section-title">Overview</div>
+                <a href="../Dashboard/dashboard.html" class="menu-item">
+                    <i class="fas fa-chart-pie"></i><span>Dashboard</span>
+                </a>
+                <a href="#" class="menu-item active">
+                    <i class="fas fa-arrow-trend-up"></i><span>Investments</span>
+                </a>
+            </div>
+            <div class="menu-section">
+                <div class="menu-section-title">Finance</div>
+                <a href="../MoneyTransfer/moneytransfer.html" class="menu-item">
+                    <i class="fas fa-right-left"></i><span>Money Transfer</span>
+                </a>
+                <a href="../Debts/debts.html" class="menu-item">
+                    <i class="fas fa-hand-holding-dollar"></i><span>Debts</span>
+                </a>
+            </div>
+            <div class="menu-section">
+                <div class="menu-section-title">Workspace</div>
+                <a href="../Clients/clients.html" class="menu-item">
+                    <i class="fas fa-users"></i><span>Clients</span>
+                </a>
+                <a href="../Inventory/inventory.html" class="menu-item">
+                    <i class="fas fa-boxes-stacked"></i><span>Inventory</span>
+                </a>
+                <a href="../HR/hr.html" class="menu-item">
+                    <i class="fas fa-id-badge"></i><span>HR &amp; Payroll</span>
+                </a>
+            </div>
         </div>
-        
-        <button class="logout-btn">
-            <i class="fas fa-sign-out-alt"></i>
-            <span>Logout</span>
-        </button>
+
+        <div class="logout-container">
+            <button class="logout-btn" id="logout-btn">
+                <i class="fas fa-arrow-right-from-bracket"></i><span>Sign Out</span>
+            </button>
+        </div>
     </div>
-    
+
     <!-- Main Content -->
     <div class="main-content">
-        <!-- Static Content (Upper Page) -->
         <div class="static-content">
             <!-- Navbar -->
             <div class="navbar">
-                <div></div> <!-- Empty spacer -->
-                <div class="user-profile">
-                    <div class="user-avatar" id="user-avatar"></div>
-                    <div class="user-tooltip" id="user-tooltip"></div>
+                <div class="page-header">
+                    <h1 class="page-title">Investments</h1>
+                    <p class="page-subtitle">Track your stock portfolio and performance</p>
+                </div>
+                <div class="navbar-actions">
+                    <div class="user-profile">
+                        <div class="user-avatar" id="profile-icon"></div>
+                        <div class="user-tooltip" id="username-tooltip"></div>
+                    </div>
                 </div>
             </div>
-            
-            <!-- Balance Cards - Will be updated by JavaScript -->
+
+            <!-- Balance Cards -->
             <div class="balance-section">
                 <div class="balance-card wallet-card">
                     <div class="balance-header">
@@ -133,28 +105,27 @@
                     <div class="balance-amount" id="total-invested">₹0.00</div>
                     <div class="balance-subtext">Across all investments</div>
                 </div>
-                
-                <div class="balance-card emergency-card">
+
+                <div class="balance-card investment-card">
                     <div class="balance-header">
-                        <i class="fas fa-piggy-bank"></i>
+                        <i class="fas fa-chart-line"></i>
                         <span>Current Value</span>
                     </div>
                     <div class="balance-amount" id="current-value">₹0.00</div>
                     <div class="balance-subtext" id="profit-loss">+₹0.00 (0.00%)</div>
                 </div>
             </div>
-            
-            <!-- Charts Section -->
+
+            <!-- Charts -->
             <div class="charts-section">
                 <div class="charts-container">
                     <div class="export-actions">
                         <button class="export-pdf-btn" id="export-pdf-btn">
                             <i class="fas fa-file-pdf"></i>
-                            <span>Export PDF</span>
+                            <span>Export Investment Report</span>
                         </button>
                     </div>
-                    
-                    
+
                     <div class="swiper-container">
                         <div class="swiper-wrapper">
                             <div class="swiper-slide">
@@ -173,205 +144,236 @@
                         <div class="swiper-button-next"></div>
                         <div class="swiper-button-prev"></div>
                     </div>
-                </div>            
-            </div>
-            <div class="scroll-hint">
-                <i class="fas fa-chevron-down"></i>
+                </div>
             </div>
         </div>
-        
-        <!-- Sliding Section (Lower Page) -->
+
+        <!-- Holdings List -->
         <div class="sliding-section">
             <div class="transactions-section">
                 <div class="transactions-container">
                     <div class="section-header">
                         <div class="section-title">Your Holdings</div>
-                        <div style="font-size: 14px; color: #7F8C8D;">Current investments</div>
+                        <div>Current investments</div>
                     </div>
-                    
                     <div class="transaction-list" id="investments-list">
-                        <!-- Will be populated by JavaScript -->
-                        <div class="no-investments" style="text-align: center; padding: 20px; color: #7F8C8D;">
-                            No active investments found. Start investing by clicking "Buy Stocks".
+                        <div class="no-investments">
+                            No active investments yet. Tap “Buy Stocks” to begin building your portfolio.
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-    
-    <!-- Add Button -->
+
+    <!-- FAB -->
     <button class="add-button" id="addButton">
         <i class="fas fa-plus" id="addIcon"></i>
     </button>
-    
-    <!-- Add Options -->
+
     <div class="add-options" id="addOptions">
         <div class="add-option option-credit" id="buy-stock-option">
-            <i class="fas fa-plus-circle"></i>
-            <span>Buy Stocks</span>
+            <i class="fas fa-arrow-up"></i><span>Buy Stocks</span>
         </div>
         <div class="add-option option-debit" id="sell-stock-option">
-            <i class="fas fa-minus-circle"></i>
-            <span>Sell Stocks</span>
+            <i class="fas fa-arrow-down"></i><span>Sell Stocks</span>
         </div>
     </div>
-    
-    <!-- Modals from original implementation -->
 
-<!-- PDF Export Modal -->
-<div id="pdf-export-modal" class="modal-overlay">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h2>Export Investment Report</h2>
-            <button class="modal-close" id="close-pdf-export-modal">
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
-        <div class="modal-body">
-            <form id="pdf-export-form">
-                <div class="radio-group">
-                    <div class="radio-option">
-                        <input type="radio" id="full-report" name="reportType" value="full" checked>
-                        <label for="full-report">Full Report</label>
-                    </div>
-                    <div class="radio-option">
-                        <input type="radio" id="partial-report" name="reportType" value="partial">
-                        <label for="partial-report">Partial Report</label>
-                    </div>
-                </div>
-                
-                <div class="partial-report-options" id="partial-report-options" style="display: none;">
-                    <div class="form-group">
-                        <label for="pdf-from-date">From Date</label>
-                        <input type="date" id="pdf-from-date" class="form-control">
-                    </div>
-                    <div class="form-group">
-                        <label for="pdf-to-date">To Date</label>
-                        <input type="date" id="pdf-to-date" class="form-control">
-                    </div>
-                </div>
-                
-                <div class="form-actions">
-                    <button type="button" class="btn btn-outline" id="cancel-pdf-export">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Generate PDF</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-<!-- Buy Stock Modal -->
-<div id="debit-modal" class="modal-overlay">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h2>Buy Stock</h2>
-            <button class="modal-close" id="close-debit-modal">
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
-        <div class="modal-body">
-            <form id="debit-form">
-                <div class="form-group">
-                    <label for="debit-category">Stock Symbol</label>
-                    <input type="text" id="debit-category" class="form-control" required placeholder="e.g., RELIANCE">
-                </div>
-                <div class="form-group">
-                    <label for="stock-price">Stock Price (₹)</label>
-                    <div class="input-group">
-                        <input type="number" step="0.01" class="form-control" id="stock-price" placeholder="Enter or fetch stock price">
-                        <div class="input-group-append">
-                            <button type="button" class="btn btn-outline-primary" id="fetch-price-btn">
-                                <i class="fas fa-sync-alt"></i> Fetch Price
-                            </button>
+    <!-- PDF Export Modal -->
+    <div id="pdf-export-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Export Investment Report</h2>
+                <button class="modal-close" id="close-pdf-export-modal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="pdf-export-form">
+                    <div class="radio-group">
+                        <div class="radio-option">
+                            <input type="radio" id="full-report" name="reportType" value="full" checked>
+                            <label for="full-report">Full Report</label>
+                        </div>
+                        <div class="radio-option">
+                            <input type="radio" id="partial-report" name="reportType" value="partial">
+                            <label for="partial-report">Partial Report</label>
                         </div>
                     </div>
-                    <small class="form-text text-muted">You can enter the price manually or fetch it automatically</small>
-                </div>
-                <div class="form-group">
-                    <label for="debit-amount">Quantity</label>
-                    <input type="number" id="debit-amount" class="form-control" required min="1" step="1">
-                </div>
-                <div class="form-group">
-                    <label for="debit-date">Buy Date</label>
-                    <input type="date" id="debit-date" class="form-control" required>
-                </div>
-                <div class="form-group">
-                    <label for="debit-description">Description (Optional)</label>
-                    <textarea id="debit-description" class="form-control"></textarea>
-                </div>
-                <div class="form-group">
-                    <label>Total Cost: <span id="total-cost">₹0.00</span></label>
-                </div>
-                <div class="modal-buttons">
-                    <button type="button" class="modal-btn close-btn" id="close-debit-btn">Cancel</button>
-                    <button type="submit" class="modal-btn save-btn">Buy Stock</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-<!-- Sell Stock Modal -->
-<div id="entry-modal" class="modal-overlay">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h2>Sell Stock</h2>
-            <button class="modal-close" id="close-modal">
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
-        <form id="sell-stock-form">
-            <div class="form-group">
-                <label for="sell-stock-input">Stock Symbol</label>
-                <div class="input-group">
-                    <input type="text" id="sell-stock-input" name="stock_symbol" class="form-control" required placeholder="e.g., RELIANCE">
-                    <div class="input-group-append">
-                        <button type="button" class="btn btn-outline-primary" id="fetch-stock-btn">
-                            <i class="fas fa-sync-alt"></i> Fetch Details
-                        </button>
-                    </div>
-                </div>
-                <small class="form-text text-muted">Enter the stock symbol to fetch current holdings</small>
-            </div>
-            <div class="stock-details" style="display: none;">
-                <div class="form-group">
-                    <label>Current Holdings</label>
-                    <div class="holdings-info" style="padding: 10px; background: #f8f9fa; border-radius: 8px; margin-bottom: 15px;">
-                        <div id="current-holdings-details">
-                            <!-- Will be populated by JavaScript -->
+                    <div class="partial-report-options" id="partial-report-options" style="display: none;">
+                        <div class="form-group">
+                            <label for="pdf-from-date">From Date</label>
+                            <input type="date" id="pdf-from-date" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label for="pdf-to-date">To Date</label>
+                            <input type="date" id="pdf-to-date" class="form-control">
                         </div>
                     </div>
-                </div>
-                <div class="form-group">
-                    <label for="sell-quantity">Quantity to Sell</label>
-                    <input type="number" id="sell-quantity" name="sell_quantity" class="form-control" min="1" required disabled>
-                </div>
-                <div class="form-group">
-                    <label for="sell-date">Sell Date</label>
-                    <input type="date" id="sell-date" name="sell_date" class="form-control" required>
-                </div>
-                <div class="form-group">
-                    <label for="expected-return">Expected Return</label>
-                    <input type="text" id="expected-return" name="expected_return" class="form-control" value="₹0.00" readonly>
-                </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-outline" id="cancel-pdf-export">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Generate PDF</button>
+                    </div>
+                </form>
             </div>
-            <div class="modal-buttons">
-                <button type="button" class="modal-btn close-btn" id="cancel-sell">Cancel</button>
-                <button type="submit" class="modal-btn save-btn">Sell Stock</button>
-            </div>
-        </form>
+        </div>
     </div>
-</div>
 
-<!-- Error Message Container -->
-<div id="error-message" class="error-message"></div>
+    <!-- Buy Stock Modal -->
+    <div id="debit-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Buy Stock</h2>
+                <button class="modal-close" id="close-debit-modal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="debit-form">
+                    <div class="form-group">
+                        <label for="debit-category">Stock Symbol</label>
+                        <input type="text" id="debit-category" class="form-control" required placeholder="e.g., RELIANCE">
+                    </div>
+                    <div class="form-group">
+                        <label for="stock-price">Stock Price (₹)</label>
+                        <div class="input-group">
+                            <input type="number" step="0.01" class="form-control" id="stock-price" placeholder="Enter or fetch stock price">
+                            <div class="input-group-append">
+                                <button type="button" class="btn btn-outline-primary" id="fetch-price-btn">
+                                    <i class="fas fa-sync-alt"></i> Fetch Price
+                                </button>
+                            </div>
+                        </div>
+                        <small class="form-text text-muted">Enter the price manually or fetch it automatically.</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="debit-amount">Quantity</label>
+                        <input type="number" id="debit-amount" class="form-control" required min="1" step="1">
+                    </div>
+                    <div class="form-group">
+                        <label for="debit-date">Buy Date</label>
+                        <input type="date" id="debit-date" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="debit-description">Description (Optional)</label>
+                        <textarea id="debit-description" class="form-control"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Total Cost: <span id="total-cost">₹0.00</span></label>
+                    </div>
+                    <div class="modal-buttons">
+                        <button type="button" class="modal-btn close-btn" id="close-debit-btn">Cancel</button>
+                        <button type="submit" class="modal-btn save-btn">Buy Stock</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sell Stock Modal -->
+    <div id="entry-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Sell Stock</h2>
+                <button class="modal-close" id="close-modal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="sell-stock-form">
+                    <div class="form-group">
+                        <label for="sell-stock-input">Stock Symbol</label>
+                        <div class="input-group">
+                            <input type="text" id="sell-stock-input" name="stock_symbol" class="form-control" required placeholder="e.g., RELIANCE">
+                            <div class="input-group-append">
+                                <button type="button" class="btn btn-outline-primary" id="fetch-stock-btn">
+                                    <i class="fas fa-sync-alt"></i> Fetch Details
+                                </button>
+                            </div>
+                        </div>
+                        <small class="form-text text-muted">Enter the stock symbol to fetch current holdings.</small>
+                    </div>
+                    <div class="stock-details" style="display: none;">
+                        <div class="form-group">
+                            <label>Current Holdings</label>
+                            <div class="holdings-info">
+                                <div id="current-holdings-details"></div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="sell-quantity">Quantity to Sell</label>
+                            <input type="number" id="sell-quantity" name="sell_quantity" class="form-control" min="1" required disabled>
+                        </div>
+                        <div class="form-group">
+                            <label for="sell-price">Sell Price (₹)</label>
+                            <div class="input-group">
+                                <input type="number" step="0.01" class="form-control" id="sell-price" placeholder="Current market price" readonly>
+                                <div class="input-group-append">
+                                    <button type="button" class="btn btn-outline-secondary" id="manual-price-btn" title="Enter price manually">
+                                        <i class="fas fa-edit"></i> Manual
+                                    </button>
+                                </div>
+                            </div>
+                            <small class="form-text text-muted">Price is fetched automatically or can be entered manually.</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="sell-date">Sell Date</label>
+                            <input type="date" id="sell-date" name="sell_date" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="expected-return">Expected Return</label>
+                            <input type="text" id="expected-return" name="expected_return" class="form-control" value="₹0.00" readonly>
+                        </div>
+                    </div>
+                    <div class="modal-buttons">
+                        <button type="button" class="modal-btn close-btn" id="cancel-sell">Cancel</button>
+                        <button type="submit" class="modal-btn save-btn">Sell Stock</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Error message -->
+    <div id="error-message" class="error-message"></div>
 
     <script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
-    <script src="investment_script.js"></script>
     <script>
-        
-    </script>
-        <script src="../utils/pdf-export.js"></script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const isAuthenticated = localStorage.getItem('isAuthenticated');
+            const currentUser = localStorage.getItem('currentUser');
+            if (!isAuthenticated || !currentUser) {
+                window.location.href = '../Loginpage/index.html';
+                return;
+            }
+            try {
+                const user = JSON.parse(currentUser);
+                const profileIcon = document.getElementById('profile-icon');
+                const usernameTooltip = document.getElementById('username-tooltip');
+                if (profileIcon && user.name) profileIcon.textContent = user.name.charAt(0).toUpperCase();
+                if (usernameTooltip && user.name) usernameTooltip.textContent = user.name;
 
+                const logoutBtn = document.getElementById('logout-btn');
+                if (logoutBtn) {
+                    logoutBtn.addEventListener('click', function () {
+                        localStorage.removeItem('currentUser');
+                        localStorage.removeItem('isAuthenticated');
+                        window.location.href = '../Loginpage/index.html';
+                    });
+                }
+            } catch (e) {
+                console.error('Error parsing user data:', e);
+                localStorage.removeItem('currentUser');
+                localStorage.removeItem('isAuthenticated');
+                window.location.href = '../Loginpage/index.html';
+            }
+        });
+    </script>
+    <script src="../utils/toastify-utils.js"></script>
+    <script src="../utils/premium-charts.js"></script>
+    <script src="investment_script.js"></script>
+    <script src="../utils/pdf-export.js"></script>
+    <script src="../utils/notifications-widget.js"></script>
 </body>
 </html>

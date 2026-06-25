@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventory · Penny Pilot</title>
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap" rel="stylesheet">
+
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Toastify -->
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+
+    <!-- Premium Theme (shared) -->
+    <link rel="stylesheet" href="../utils/theme.css">
+    <link rel="stylesheet" href="../Clients/clients.css">
+    <link rel="stylesheet" href="inventory.css">
+</head>
+<body>
+    <!-- Floating Sidebar -->
+    <div class="sidebar">
+        <div class="sidebar-logo">
+            <div class="logo">
+                <div class="logo-icon"><i class="fas fa-coins"></i></div>
+                <div class="logo-text">Penny Pilot</div>
+            </div>
+        </div>
+
+        <div class="sidebar-menu">
+            <div class="menu-section">
+                <div class="menu-section-title">Overview</div>
+                <a href="../Dashboard/dashboard.html" class="menu-item">
+                    <i class="fas fa-chart-pie"></i><span>Dashboard</span>
+                </a>
+                <a href="../Investment/Investments.html" class="menu-item">
+                    <i class="fas fa-arrow-trend-up"></i><span>Investments</span>
+                </a>
+            </div>
+            <div class="menu-section">
+                <div class="menu-section-title">Finance</div>
+                <a href="../MoneyTransfer/moneytransfer.html" class="menu-item">
+                    <i class="fas fa-right-left"></i><span>Money Transfer</span>
+                </a>
+                <a href="../Debts/debts.html" class="menu-item">
+                    <i class="fas fa-hand-holding-dollar"></i><span>Debts</span>
+                </a>
+            </div>
+            <div class="menu-section">
+                <div class="menu-section-title">Workspace</div>
+                <a href="../Clients/clients.html" class="menu-item">
+                    <i class="fas fa-users"></i><span>Clients</span>
+                </a>
+                <a href="../Inventory/inventory.html" class="menu-item active">
+                    <i class="fas fa-boxes-stacked"></i><span>Inventory</span>
+                </a>
+                <a href="../HR/hr.html" class="menu-item">
+                    <i class="fas fa-id-badge"></i><span>HR &amp; Payroll</span>
+                </a>
+            </div>
+        </div>
+
+        <div class="logout-container">
+            <button class="logout-btn" id="logout-btn">
+                <i class="fas fa-arrow-right-from-bracket"></i><span>Sign Out</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="static-content">
+            <div class="navbar">
+                <div class="page-header">
+                    <h1 class="page-title">Inventory &amp; Procurement</h1>
+                    <p class="page-subtitle">Track stock, suppliers and purchase orders</p>
+                </div>
+                <div class="navbar-actions">
+                    <div class="user-profile">
+                        <div class="user-avatar" id="profile-icon"></div>
+                        <div class="user-tooltip" id="username-tooltip"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stats -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon"><i class="fas fa-boxes-stacked"></i></div>
+                    <div class="stat-content">
+                        <h3 id="stat-total-products">0</h3>
+                        <p>Total Products</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon"><i class="fas fa-triangle-exclamation"></i></div>
+                    <div class="stat-content">
+                        <h3 id="stat-low-stock">0</h3>
+                        <p>Low Stock Items</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon"><i class="fas fa-warehouse"></i></div>
+                    <div class="stat-content">
+                        <h3 id="stat-inventory-value">₹0</h3>
+                        <p>Inventory Value (cost)</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon"><i class="fas fa-truck-fast"></i></div>
+                    <div class="stat-content">
+                        <h3 id="stat-suppliers">0</h3>
+                        <p>Suppliers</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon"><i class="fas fa-file-invoice"></i></div>
+                    <div class="stat-content">
+                        <h3 id="stat-pending-pos">0</h3>
+                        <p>POs Pending Approval</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon"><i class="fas fa-money-bill-trend-up"></i></div>
+                    <div class="stat-content">
+                        <h3 id="stat-spend-30d">₹0</h3>
+                        <p>Inventory Spend (30d)</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tabs -->
+            <div class="inv-tabs">
+                <button class="inv-tab active" data-tab="products"><i class="fas fa-box"></i> Products</button>
+                <button class="inv-tab" data-tab="suppliers"><i class="fas fa-truck"></i> Suppliers</button>
+                <button class="inv-tab" data-tab="purchase-orders"><i class="fas fa-file-invoice"></i> Purchase Orders</button>
+            </div>
+
+            <!-- Products tab -->
+            <section class="inv-panel active" id="panel-products">
+                <div class="content-header">
+                    <h2><i class="fas fa-box"></i> Products</h2>
+                    <div style="display: flex; gap: 8px;">
+                        <input type="search" id="product-search" class="form-control inv-search" placeholder="Search products...">
+                        <button class="btn btn-primary" id="add-product-btn"><i class="fas fa-plus"></i> Add Product</button>
+                    </div>
+                </div>
+
+                <div class="inv-table-wrap">
+                    <table class="inv-table">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>SKU</th>
+                                <th>Category</th>
+                                <th>Stock</th>
+                                <th>Reorder</th>
+                                <th>Cost</th>
+                                <th>Price</th>
+                                <th>Supplier</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="products-tbody">
+                            <tr><td colspan="9" class="inv-empty">Loading products...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Suppliers tab -->
+            <section class="inv-panel" id="panel-suppliers">
+                <div class="content-header">
+                    <h2><i class="fas fa-truck"></i> Suppliers</h2>
+                    <button class="btn btn-primary" id="add-supplier-btn"><i class="fas fa-plus"></i> Add Supplier</button>
+                </div>
+
+                <div class="inv-table-wrap">
+                    <table class="inv-table">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Contact</th>
+                                <th>Email</th>
+                                <th>Phone</th>
+                                <th>GST</th>
+                                <th>Products</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="suppliers-tbody">
+                            <tr><td colspan="8" class="inv-empty">Loading suppliers...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Purchase Orders tab -->
+            <section class="inv-panel" id="panel-purchase-orders">
+                <div class="content-header">
+                    <h2><i class="fas fa-file-invoice"></i> Purchase Orders</h2>
+                    <button class="btn btn-primary" id="add-po-btn"><i class="fas fa-plus"></i> New Purchase Order</button>
+                </div>
+
+                <div class="inv-table-wrap">
+                    <table class="inv-table">
+                        <thead>
+                            <tr>
+                                <th>PO #</th>
+                                <th>Supplier</th>
+                                <th>Items</th>
+                                <th>Total</th>
+                                <th>Expected</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="po-tbody">
+                            <tr><td colspan="7" class="inv-empty">Loading purchase orders...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <!-- Product Modal -->
+    <div class="inv-modal-overlay" id="product-modal">
+        <div class="inv-modal">
+            <div class="inv-modal-header">
+                <h3 id="product-modal-title">Add Product</h3>
+                <button class="inv-modal-close" data-close="product-modal">&times;</button>
+            </div>
+            <form id="product-form" class="inv-modal-body">
+                <input type="hidden" id="product-id">
+                <div class="inv-grid-2">
+                    <div class="form-group">
+                        <label>Name *</label>
+                        <input class="form-control" id="product-name" required>
+                    </div>
+                    <div class="form-group">
+                        <label>SKU</label>
+                        <input class="form-control" id="product-sku" placeholder="Optional">
+                    </div>
+                    <div class="form-group">
+                        <label>Category</label>
+                        <input class="form-control" id="product-category">
+                    </div>
+                    <div class="form-group">
+                        <label>Unit</label>
+                        <input class="form-control" id="product-unit" value="pcs">
+                    </div>
+                    <div class="form-group">
+                        <label>Cost Price (₹)</label>
+                        <input class="form-control" id="product-cost-price" type="number" step="0.01" min="0">
+                    </div>
+                    <div class="form-group">
+                        <label>Selling Price (₹)</label>
+                        <input class="form-control" id="product-selling-price" type="number" step="0.01" min="0">
+                    </div>
+                    <div class="form-group">
+                        <label>Initial Stock</label>
+                        <input class="form-control" id="product-quantity" type="number" min="0" value="0">
+                    </div>
+                    <div class="form-group">
+                        <label>Reorder Level</label>
+                        <input class="form-control" id="product-reorder" type="number" min="0" value="10">
+                    </div>
+                    <div class="form-group">
+                        <label>Supplier</label>
+                        <select class="form-control" id="product-supplier">
+                            <option value="">— None —</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Status</label>
+                        <select class="form-control" id="product-status">
+                            <option value="active">Active</option>
+                            <option value="discontinued">Discontinued</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea class="form-control" id="product-description" rows="2"></textarea>
+                </div>
+                <div class="inv-modal-footer">
+                    <button type="button" class="btn btn-secondary" data-close="product-modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Supplier Modal -->
+    <div class="inv-modal-overlay" id="supplier-modal">
+        <div class="inv-modal">
+            <div class="inv-modal-header">
+                <h3 id="supplier-modal-title">Add Supplier</h3>
+                <button class="inv-modal-close" data-close="supplier-modal">&times;</button>
+            </div>
+            <form id="supplier-form" class="inv-modal-body">
+                <input type="hidden" id="supplier-id">
+                <div class="inv-grid-2">
+                    <div class="form-group">
+                        <label>Name *</label>
+                        <input class="form-control" id="supplier-name" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Contact Person</label>
+                        <input class="form-control" id="supplier-contact">
+                    </div>
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input class="form-control" type="email" id="supplier-email">
+                    </div>
+                    <div class="form-group">
+                        <label>Phone</label>
+                        <input class="form-control" id="supplier-phone">
+                    </div>
+                    <div class="form-group">
+                        <label>GST Number</label>
+                        <input class="form-control" id="supplier-gst">
+                    </div>
+                    <div class="form-group">
+                        <label>Payment Terms</label>
+                        <input class="form-control" id="supplier-payment-terms" placeholder="Net 30, etc">
+                    </div>
+                    <div class="form-group">
+                        <label>Status</label>
+                        <select class="form-control" id="supplier-status">
+                            <option value="active">Active</option>
+                            <option value="inactive">Inactive</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Address</label>
+                    <textarea class="form-control" id="supplier-address" rows="2"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Notes</label>
+                    <textarea class="form-control" id="supplier-notes" rows="2"></textarea>
+                </div>
+                <div class="inv-modal-footer">
+                    <button type="button" class="btn btn-secondary" data-close="supplier-modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Purchase Order Modal -->
+    <div class="inv-modal-overlay" id="po-modal">
+        <div class="inv-modal inv-modal-lg">
+            <div class="inv-modal-header">
+                <h3>New Purchase Order</h3>
+                <button class="inv-modal-close" data-close="po-modal">&times;</button>
+            </div>
+            <form id="po-form" class="inv-modal-body">
+                <div class="inv-grid-2">
+                    <div class="form-group">
+                        <label>Supplier *</label>
+                        <select class="form-control" id="po-supplier" required>
+                            <option value="">Select supplier</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Expected Date</label>
+                        <input type="date" class="form-control" id="po-expected-date">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Notes</label>
+                    <textarea class="form-control" id="po-notes" rows="2"></textarea>
+                </div>
+
+                <h4 style="margin: 1rem 0 0.5rem;">Line Items</h4>
+                <div id="po-items-container"></div>
+                <button type="button" class="btn btn-secondary" id="po-add-item-btn"><i class="fas fa-plus"></i> Add Item</button>
+
+                <div class="po-total-row">
+                    <span>Total:</span>
+                    <span id="po-total">₹0.00</span>
+                </div>
+
+                <div class="inv-modal-footer">
+                    <button type="button" class="btn btn-secondary" data-close="po-modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Create PO</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Stock Adjust Modal -->
+    <div class="inv-modal-overlay" id="adjust-stock-modal">
+        <div class="inv-modal">
+            <div class="inv-modal-header">
+                <h3>Adjust Stock</h3>
+                <button class="inv-modal-close" data-close="adjust-stock-modal">&times;</button>
+            </div>
+            <form id="adjust-stock-form" class="inv-modal-body">
+                <input type="hidden" id="adjust-product-id">
+                <div class="form-group">
+                    <label>Product</label>
+                    <input class="form-control" id="adjust-product-name" readonly>
+                </div>
+                <div class="inv-grid-2">
+                    <div class="form-group">
+                        <label>Current Stock</label>
+                        <input class="form-control" id="adjust-current-stock" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label>Adjustment (delta)</label>
+                        <input class="form-control" id="adjust-delta" type="number" placeholder="+5 or -3" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Reason</label>
+                    <select class="form-control" id="adjust-reason">
+                        <option value="manual">Manual</option>
+                        <option value="sale">Sale</option>
+                        <option value="return">Return</option>
+                        <option value="adjustment">Adjustment / Write-off</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Notes</label>
+                    <textarea class="form-control" id="adjust-notes" rows="2"></textarea>
+                </div>
+                <div class="inv-modal-footer">
+                    <button type="button" class="btn btn-secondary" data-close="adjust-stock-modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Apply</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="../Loginpage/script.js"></script>
+    <script src="../utils/toastify-utils.js"></script>
+    <script src="inventory.js"></script>
+    <script src="../utils/notifications-widget.js"></script>
+</body>
+</html>

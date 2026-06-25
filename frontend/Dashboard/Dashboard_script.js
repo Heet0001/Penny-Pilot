@@ -189,12 +189,20 @@ document.addEventListener("DOMContentLoaded", function () {
             toDate = pdfToDate.value;
             
             if (!fromDate || !toDate) {
-                alert('Please select both start and end dates for partial report');
+                if (typeof showToastError === 'function') {
+                    showToastError('Please select both start and end dates for partial report');
+                } else {
+                    alert('Please select both start and end dates for partial report');
+                }
                 return;
             }
             
             if (new Date(fromDate) > new Date(toDate)) {
-                alert('End date must be after start date');
+                if (typeof showToastError === 'function') {
+                    showToastError('End date must be after start date');
+                } else {
+                    alert('End date must be after start date');
+                }
                 return;
             }
         }
@@ -236,42 +244,49 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
+    // Track whether we have an authoritative server value yet so we never flash a stale cached one
+    let walletLoaded = false;
+    let emergencyLoaded = false;
+
     function getWalletBalance() {
         const currentUser = JSON.parse(localStorage.getItem("currentUser"));
         if (!currentUser) return 0;
-        
-        // Get from localStorage first (for immediate UI update)
         const cachedBalance = localStorage.getItem(`wallet_balance_${currentUser.id}`);
-        if (cachedBalance) {
-            return parseFloat(cachedBalance);
-        }
-        return 0;
+        return cachedBalance ? parseFloat(cachedBalance) : 0;
     }
 
     function getEmergencyFundBalance() {
         const currentUser = JSON.parse(localStorage.getItem("currentUser"));
         if (!currentUser) return 0;
-        
-        // Get from localStorage first (for immediate UI update)
         const cachedBalance = localStorage.getItem(`emergency_fund_${currentUser.id}`);
-        if (cachedBalance) {
-            return parseFloat(cachedBalance);
+        return cachedBalance ? parseFloat(cachedBalance) : 0;
+    }
+
+    function showSkeleton(elementId) {
+        const el = document.getElementById(elementId);
+        if (el) {
+            el.innerHTML = '<span class="balance-skeleton">&nbsp;</span>';
         }
-        return 0;
     }
 
     function displayWalletBalance() {
         const balanceDisplay = document.getElementById("wallet-balance");
-        if (balanceDisplay) {
-            balanceDisplay.textContent = `₹${getWalletBalance().toFixed(2)}`;
+        if (!balanceDisplay) return;
+        if (!walletLoaded) {
+            showSkeleton("wallet-balance");
+            return;
         }
+        balanceDisplay.textContent = `₹${getWalletBalance().toFixed(2)}`;
     }
 
     function displayEmergencyFundBalance() {
         const balanceDisplay = document.getElementById("emergency-balance");
-        if (balanceDisplay) {
-            balanceDisplay.textContent = `₹${getEmergencyFundBalance().toFixed(2)}`;
+        if (!balanceDisplay) return;
+        if (!emergencyLoaded) {
+            showSkeleton("emergency-balance");
+            return;
         }
+        balanceDisplay.textContent = `₹${getEmergencyFundBalance().toFixed(2)}`;
     }
 
     function updateWalletBalance(amount, isCredit = true) {
@@ -334,39 +349,42 @@ document.addEventListener("DOMContentLoaded", function () {
         const currentUser = JSON.parse(localStorage.getItem("currentUser"));
         if (!currentUser) return;
 
-        // Fetch wallet balance from server
+        // Show skeletons until the server returns authoritative values
+        showSkeleton("wallet-balance");
+        showSkeleton("emergency-balance");
+
         fetch(`${BASE_URL}/get-wallet-balance/${currentUser.id}`)
             .then(response => {
                 if (!response.ok) throw new Error('Network response was not ok');
                 return response.json();
             })
             .then(data => {
-                // Ensure balance is a number and handle any potential null/undefined values
                 const balance = Number(data.balance || 0);
                 localStorage.setItem(`wallet_balance_${currentUser.id}`, balance.toFixed(2));
+                walletLoaded = true;
                 displayWalletBalance();
             })
             .catch(error => {
                 console.error('Error fetching wallet balance:', error);
-                // Fallback to localStorage if available
+                // Network failed — fall back to cache so the UI isn't permanently empty
+                walletLoaded = true;
                 displayWalletBalance();
             });
 
-        // Fetch emergency fund balance from server
         fetch(`${BASE_URL}/get-emergency-fund/${currentUser.id}`)
             .then(response => {
                 if (!response.ok) throw new Error('Network response was not ok');
                 return response.json();
             })
             .then(data => {
-                // Ensure balance is a number and handle any potential null/undefined values
                 const balance = Number(data.balance || 0);
                 localStorage.setItem(`emergency_fund_${currentUser.id}`, balance.toFixed(2));
+                emergencyLoaded = true;
                 displayEmergencyFundBalance();
             })
             .catch(error => {
                 console.error('Error fetching emergency fund:', error);
-                // Fallback to localStorage if available
+                emergencyLoaded = true;
                 displayEmergencyFundBalance();
             });
     }
@@ -677,7 +695,7 @@ document.addEventListener("DOMContentLoaded", function () {
     
             const amount = document.createElement("div");
             amount.className = `transaction-amount transaction-${transaction.type}`;
-            amount.textContent = `${transaction.type === "credit" ? "+" : "-"}$${parseFloat(transaction.amount).toFixed(2)}`;
+            amount.textContent = `${transaction.type === "credit" ? "+" : "-"}₹${parseFloat(transaction.amount).toFixed(2)}`;
     
             transactionItem.appendChild(icon);
             transactionItem.appendChild(details);

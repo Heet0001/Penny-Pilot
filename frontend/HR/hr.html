@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HR &amp; Payroll · Penny Pilot</title>
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+
+    <link rel="stylesheet" href="../utils/theme.css">
+    <link rel="stylesheet" href="../Clients/clients.css">
+    <link rel="stylesheet" href="../Inventory/inventory.css">
+    <link rel="stylesheet" href="hr.css">
+</head>
+<body>
+    <div class="sidebar">
+        <div class="sidebar-logo">
+            <div class="logo">
+                <div class="logo-icon"><i class="fas fa-coins"></i></div>
+                <div class="logo-text">Penny Pilot</div>
+            </div>
+        </div>
+
+        <div class="sidebar-menu">
+            <div class="menu-section">
+                <div class="menu-section-title">Overview</div>
+                <a href="../Dashboard/dashboard.html" class="menu-item"><i class="fas fa-chart-pie"></i><span>Dashboard</span></a>
+                <a href="../Investment/Investments.html" class="menu-item"><i class="fas fa-arrow-trend-up"></i><span>Investments</span></a>
+            </div>
+            <div class="menu-section">
+                <div class="menu-section-title">Finance</div>
+                <a href="../MoneyTransfer/moneytransfer.html" class="menu-item"><i class="fas fa-right-left"></i><span>Money Transfer</span></a>
+                <a href="../Debts/debts.html" class="menu-item"><i class="fas fa-hand-holding-dollar"></i><span>Debts</span></a>
+            </div>
+            <div class="menu-section">
+                <div class="menu-section-title">Workspace</div>
+                <a href="../Clients/clients.html" class="menu-item"><i class="fas fa-users"></i><span>Clients</span></a>
+                <a href="../Inventory/inventory.html" class="menu-item"><i class="fas fa-boxes-stacked"></i><span>Inventory</span></a>
+                <a href="../HR/hr.html" class="menu-item active"><i class="fas fa-id-badge"></i><span>HR &amp; Payroll</span></a>
+            </div>
+        </div>
+
+        <div class="logout-container">
+            <button class="logout-btn" id="logout-btn">
+                <i class="fas fa-arrow-right-from-bracket"></i><span>Sign Out</span>
+            </button>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="static-content">
+            <div class="navbar">
+                <div class="page-header">
+                    <h1 class="page-title">HR &amp; Payroll</h1>
+                    <p class="page-subtitle">Employees, attendance, leaves, recruitment and payroll</p>
+                </div>
+                <div class="navbar-actions">
+                    <div class="user-profile">
+                        <div class="user-avatar" id="profile-icon"></div>
+                        <div class="user-tooltip" id="username-tooltip"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stats -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon"><i class="fas fa-users"></i></div>
+                    <div class="stat-content"><h3 id="stat-active-employees">0</h3><p>Active Employees</p></div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon"><i class="fas fa-money-bill-wave"></i></div>
+                    <div class="stat-content"><h3 id="stat-monthly-outflow">₹0</h3><p>Monthly Payroll Outflow</p></div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon"><i class="fas fa-calendar-check"></i></div>
+                    <div class="stat-content"><h3 id="stat-pending-leaves">0</h3><p>Pending Leave Requests</p></div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon"><i class="fas fa-briefcase"></i></div>
+                    <div class="stat-content"><h3 id="stat-open-postings">0</h3><p>Open Job Postings</p></div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon"><i class="fas fa-receipt"></i></div>
+                    <div class="stat-content"><h3 id="stat-payslips-month">0</h3><p>Payslips This Month</p></div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon"><i class="fas fa-coins"></i></div>
+                    <div class="stat-content"><h3 id="stat-paid-30d">₹0</h3><p>Paid Last 30 Days</p></div>
+                </div>
+            </div>
+
+            <!-- Tabs -->
+            <div class="inv-tabs">
+                <button class="inv-tab active" data-tab="employees"><i class="fas fa-users"></i> Employees</button>
+                <button class="inv-tab" data-tab="attendance"><i class="fas fa-calendar-check"></i> Attendance</button>
+                <button class="inv-tab" data-tab="leaves"><i class="fas fa-plane-departure"></i> Leaves</button>
+                <button class="inv-tab" data-tab="performance"><i class="fas fa-star"></i> Performance</button>
+                <button class="inv-tab" data-tab="recruitment"><i class="fas fa-bullhorn"></i> Recruitment</button>
+                <button class="inv-tab" data-tab="payroll"><i class="fas fa-receipt"></i> Payroll</button>
+            </div>
+
+            <!-- Employees -->
+            <section class="inv-panel active" id="panel-employees">
+                <div class="content-header">
+                    <h2><i class="fas fa-users"></i> Employees</h2>
+                    <button class="btn btn-primary" id="add-employee-btn"><i class="fas fa-plus"></i> Add Employee</button>
+                </div>
+                <div class="inv-table-wrap">
+                    <table class="inv-table">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Code</th>
+                                <th>Role</th>
+                                <th>Department</th>
+                                <th>Mode</th>
+                                <th>Joining</th>
+                                <th>Monthly Pay</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="employees-tbody"><tr><td colspan="8" class="inv-empty">Loading...</td></tr></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Attendance -->
+            <section class="inv-panel" id="panel-attendance">
+                <div class="content-header">
+                    <h2><i class="fas fa-calendar-check"></i> Attendance</h2>
+                    <input type="date" class="form-control hr-date-input" id="attendance-date">
+                </div>
+                <div class="inv-table-wrap">
+                    <table class="inv-table">
+                        <thead>
+                            <tr>
+                                <th>Employee</th>
+                                <th>Role</th>
+                                <th>Status</th>
+                                <th>Hours</th>
+                                <th>Notes</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="attendance-tbody"><tr><td colspan="6" class="inv-empty">Loading...</td></tr></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Leaves -->
+            <section class="inv-panel" id="panel-leaves">
+                <div class="content-header">
+                    <h2><i class="fas fa-plane-departure"></i> Leave Requests</h2>
+                    <button class="btn btn-primary" id="add-leave-btn"><i class="fas fa-plus"></i> Log Leave</button>
+                </div>
+                <div class="inv-table-wrap">
+                    <table class="inv-table">
+                        <thead>
+                            <tr>
+                                <th>Employee</th>
+                                <th>Type</th>
+                                <th>From</th>
+                                <th>To</th>
+                                <th>Reason</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="leaves-tbody"><tr><td colspan="7" class="inv-empty">Loading...</td></tr></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Performance -->
+            <section class="inv-panel" id="panel-performance">
+                <div class="content-header">
+                    <h2><i class="fas fa-star"></i> Performance Reviews</h2>
+                    <button class="btn btn-primary" id="add-appraisal-btn"><i class="fas fa-plus"></i> New Review</button>
+                </div>
+                <div id="appraisals-grid" class="hr-cards-grid">
+                    <div class="inv-empty">Loading...</div>
+                </div>
+            </section>
+
+            <!-- Recruitment -->
+            <section class="inv-panel" id="panel-recruitment">
+                <div class="content-header">
+                    <h2><i class="fas fa-bullhorn"></i> Recruitment</h2>
+                    <div style="display: flex; gap: 8px;">
+                        <button class="btn btn-secondary" id="add-applicant-btn"><i class="fas fa-user-plus"></i> Add Applicant</button>
+                        <button class="btn btn-primary" id="add-posting-btn"><i class="fas fa-plus"></i> New Posting</button>
+                    </div>
+                </div>
+                <h3 class="hr-subhead">Open Job Postings</h3>
+                <div id="postings-grid" class="hr-cards-grid"></div>
+
+                <h3 class="hr-subhead">Applicant Pipeline</h3>
+                <div id="applicants-board" class="hr-pipeline"></div>
+            </section>
+
+            <!-- Payroll -->
+            <section class="inv-panel" id="panel-payroll">
+                <div class="content-header">
+                    <h2><i class="fas fa-receipt"></i> Payroll Run</h2>
+                    <button class="btn btn-primary" id="run-payroll-btn"><i class="fas fa-play"></i> Run Payroll</button>
+                </div>
+                <p class="hr-help-text">Running payroll generates a payslip per employee, deducts the net salary from your wallet, and creates a Payroll expense entry in the books.</p>
+
+                <div class="inv-table-wrap">
+                    <table class="inv-table">
+                        <thead>
+                            <tr>
+                                <th>Period</th>
+                                <th>Employee</th>
+                                <th>Gross</th>
+                                <th>PF</th>
+                                <th>Tax</th>
+                                <th>Net</th>
+                                <th>Paid On</th>
+                                <th>Status</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody id="payslips-tbody"><tr><td colspan="9" class="inv-empty">Loading...</td></tr></tbody>
+                    </table>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <!-- Employee modal -->
+    <div class="inv-modal-overlay" id="employee-modal">
+        <div class="inv-modal inv-modal-lg">
+            <div class="inv-modal-header">
+                <h3 id="employee-modal-title">Add Employee</h3>
+                <button class="inv-modal-close" data-close="employee-modal">&times;</button>
+            </div>
+            <form id="employee-form" class="inv-modal-body">
+                <input type="hidden" id="employee-id">
+                <div class="inv-grid-2">
+                    <div class="form-group"><label>Name *</label><input class="form-control" id="emp-name" required></div>
+                    <div class="form-group"><label>Employee Code</label><input class="form-control" id="emp-code"></div>
+                    <div class="form-group"><label>Role *</label><input class="form-control" id="emp-role" required></div>
+                    <div class="form-group"><label>Department</label><input class="form-control" id="emp-department"></div>
+                    <div class="form-group"><label>Email</label><input class="form-control" type="email" id="emp-email"></div>
+                    <div class="form-group"><label>Phone</label><input class="form-control" id="emp-phone"></div>
+                    <div class="form-group"><label>Joining Date</label><input class="form-control" type="date" id="emp-joining-date"></div>
+                    <div class="form-group">
+                        <label>Work Mode</label>
+                        <select class="form-control" id="emp-work-mode">
+                            <option value="onsite">Onsite</option>
+                            <option value="remote">Remote</option>
+                            <option value="hybrid">Hybrid</option>
+                        </select>
+                    </div>
+                    <div class="form-group"><label>Bank Account</label><input class="form-control" id="emp-bank-account"></div>
+                    <div class="form-group"><label>IFSC</label><input class="form-control" id="emp-ifsc"></div>
+                    <div class="form-group"><label>PAN</label><input class="form-control" id="emp-pan"></div>
+                    <div class="form-group">
+                        <label>Tax Regime</label>
+                        <select class="form-control" id="emp-tax-regime">
+                            <option value="new">New</option>
+                            <option value="old">Old</option>
+                        </select>
+                    </div>
+                    <div class="form-group"><label>Basic Salary (₹)</label><input class="form-control" type="number" step="0.01" min="0" id="emp-basic"></div>
+                    <div class="form-group"><label>HRA (₹)</label><input class="form-control" type="number" step="0.01" min="0" id="emp-hra"></div>
+                    <div class="form-group"><label>Allowances (₹)</label><input class="form-control" type="number" step="0.01" min="0" id="emp-allowances"></div>
+                    <div class="form-group"><label>PF %</label><input class="form-control" type="number" step="0.1" min="0" id="emp-pf-percent" value="12"></div>
+                </div>
+                <div class="form-group"><label>Notes</label><textarea class="form-control" id="emp-notes" rows="2"></textarea></div>
+                <div class="inv-modal-footer">
+                    <button type="button" class="btn btn-secondary" data-close="employee-modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Attendance modal -->
+    <div class="inv-modal-overlay" id="attendance-modal">
+        <div class="inv-modal">
+            <div class="inv-modal-header">
+                <h3 id="attendance-modal-title">Mark Attendance</h3>
+                <button class="inv-modal-close" data-close="attendance-modal">&times;</button>
+            </div>
+            <form id="attendance-form" class="inv-modal-body">
+                <input type="hidden" id="att-member-id">
+                <div class="form-group">
+                    <label>Employee</label>
+                    <input class="form-control" id="att-member-name" readonly>
+                </div>
+                <div class="form-group">
+                    <label>Date</label>
+                    <input class="form-control" type="date" id="att-date" required>
+                </div>
+                <div class="form-group">
+                    <label>Status</label>
+                    <select class="form-control" id="att-status" required>
+                        <option value="present">Present</option>
+                        <option value="absent">Absent</option>
+                        <option value="leave">On Leave</option>
+                        <option value="remote">Remote</option>
+                        <option value="holiday">Holiday</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Hours Worked</label>
+                    <input class="form-control" type="number" step="0.25" min="0" id="att-hours" value="8">
+                </div>
+                <div class="form-group">
+                    <label>Notes</label>
+                    <textarea class="form-control" id="att-notes" rows="2"></textarea>
+                </div>
+                <div class="inv-modal-footer">
+                    <button type="button" class="btn btn-secondary" data-close="attendance-modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Leave modal -->
+    <div class="inv-modal-overlay" id="leave-modal">
+        <div class="inv-modal">
+            <div class="inv-modal-header">
+                <h3>Log Leave Request</h3>
+                <button class="inv-modal-close" data-close="leave-modal">&times;</button>
+            </div>
+            <form id="leave-form" class="inv-modal-body">
+                <div class="form-group">
+                    <label>Employee *</label>
+                    <select class="form-control" id="leave-member-id" required></select>
+                </div>
+                <div class="inv-grid-2">
+                    <div class="form-group">
+                        <label>Type</label>
+                        <select class="form-control" id="leave-type">
+                            <option value="casual">Casual</option>
+                            <option value="sick">Sick</option>
+                            <option value="earned">Earned</option>
+                            <option value="unpaid">Unpaid</option>
+                            <option value="maternity">Maternity</option>
+                            <option value="paternity">Paternity</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Status</label>
+                        <select class="form-control" id="leave-status">
+                            <option value="pending">Pending</option>
+                            <option value="approved">Approved</option>
+                            <option value="rejected">Rejected</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>From</label>
+                        <input class="form-control" type="date" id="leave-from" required>
+                    </div>
+                    <div class="form-group">
+                        <label>To</label>
+                        <input class="form-control" type="date" id="leave-to" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Reason</label>
+                    <textarea class="form-control" id="leave-reason" rows="2"></textarea>
+                </div>
+                <div class="inv-modal-footer">
+                    <button type="button" class="btn btn-secondary" data-close="leave-modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Appraisal modal -->
+    <div class="inv-modal-overlay" id="appraisal-modal">
+        <div class="inv-modal">
+            <div class="inv-modal-header">
+                <h3>New Performance Review</h3>
+                <button class="inv-modal-close" data-close="appraisal-modal">&times;</button>
+            </div>
+            <form id="appraisal-form" class="inv-modal-body">
+                <div class="form-group">
+                    <label>Employee *</label>
+                    <select class="form-control" id="appraisal-member-id" required></select>
+                </div>
+                <div class="inv-grid-2">
+                    <div class="form-group"><label>Review Period</label><input class="form-control" id="appraisal-period" placeholder="Q1-2026"></div>
+                    <div class="form-group"><label>Rating (out of 5)</label><input class="form-control" type="number" step="0.1" min="0" max="5" id="appraisal-rating"></div>
+                    <div class="form-group"><label>Promotion → Role</label><input class="form-control" id="appraisal-promotion"></div>
+                    <div class="form-group"><label>Salary Increment (₹/month)</label><input class="form-control" type="number" step="0.01" min="0" id="appraisal-increment" value="0"></div>
+                </div>
+                <div class="form-group"><label>Goals</label><textarea class="form-control" id="appraisal-goals" rows="2"></textarea></div>
+                <div class="form-group"><label>Comments</label><textarea class="form-control" id="appraisal-comments" rows="2"></textarea></div>
+                <div class="inv-modal-footer">
+                    <button type="button" class="btn btn-secondary" data-close="appraisal-modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Job posting modal -->
+    <div class="inv-modal-overlay" id="posting-modal">
+        <div class="inv-modal">
+            <div class="inv-modal-header">
+                <h3 id="posting-modal-title">New Job Posting</h3>
+                <button class="inv-modal-close" data-close="posting-modal">&times;</button>
+            </div>
+            <form id="posting-form" class="inv-modal-body">
+                <input type="hidden" id="posting-id">
+                <div class="form-group"><label>Title *</label><input class="form-control" id="posting-title" required></div>
+                <div class="inv-grid-2">
+                    <div class="form-group"><label>Department</label><input class="form-control" id="posting-department"></div>
+                    <div class="form-group">
+                        <label>Status</label>
+                        <select class="form-control" id="posting-status">
+                            <option value="open">Open</option>
+                            <option value="closed">Closed</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group"><label>Description</label><textarea class="form-control" id="posting-description" rows="3"></textarea></div>
+                <div class="inv-modal-footer">
+                    <button type="button" class="btn btn-secondary" data-close="posting-modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Applicant modal -->
+    <div class="inv-modal-overlay" id="applicant-modal">
+        <div class="inv-modal">
+            <div class="inv-modal-header">
+                <h3>Add Applicant</h3>
+                <button class="inv-modal-close" data-close="applicant-modal">&times;</button>
+            </div>
+            <form id="applicant-form" class="inv-modal-body">
+                <div class="form-group">
+                    <label>Job Posting *</label>
+                    <select class="form-control" id="applicant-posting-id" required></select>
+                </div>
+                <div class="inv-grid-2">
+                    <div class="form-group"><label>Name *</label><input class="form-control" id="applicant-name" required></div>
+                    <div class="form-group"><label>Email</label><input class="form-control" type="email" id="applicant-email"></div>
+                    <div class="form-group"><label>Phone</label><input class="form-control" id="applicant-phone"></div>
+                    <div class="form-group">
+                        <label>Stage</label>
+                        <select class="form-control" id="applicant-stage">
+                            <option value="applied">Applied</option>
+                            <option value="shortlisted">Shortlisted</option>
+                            <option value="interview">Interview</option>
+                            <option value="offer">Offer</option>
+                            <option value="hired">Hired</option>
+                            <option value="rejected">Rejected</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group"><label>Resume URL</label><input class="form-control" id="applicant-resume"></div>
+                <div class="form-group"><label>Notes</label><textarea class="form-control" id="applicant-notes" rows="2"></textarea></div>
+                <div class="inv-modal-footer">
+                    <button type="button" class="btn btn-secondary" data-close="applicant-modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Payroll Run modal -->
+    <div class="inv-modal-overlay" id="payroll-modal">
+        <div class="inv-modal inv-modal-lg">
+            <div class="inv-modal-header">
+                <h3>Run Payroll</h3>
+                <button class="inv-modal-close" data-close="payroll-modal">&times;</button>
+            </div>
+            <form id="payroll-form" class="inv-modal-body">
+                <div class="inv-grid-2">
+                    <div class="form-group"><label>Pay Period</label><input class="form-control" id="payroll-period" placeholder="2026-05" required></div>
+                    <div class="form-group"><label>Payment Date</label><input class="form-control" type="date" id="payroll-payment-date"></div>
+                    <div class="form-group"><label>Working Days</label><input class="form-control" type="number" min="1" max="31" id="payroll-working-days" value="22" required></div>
+                </div>
+
+                <div class="inv-table-wrap" style="margin-top: 0.6rem;">
+                    <table class="inv-table">
+                        <thead>
+                            <tr>
+                                <th><input type="checkbox" id="payroll-select-all" checked></th>
+                                <th>Employee</th>
+                                <th>Days Present</th>
+                                <th>Overtime (₹)</th>
+                                <th>Bonus (₹)</th>
+                                <th>Net Salary</th>
+                            </tr>
+                        </thead>
+                        <tbody id="payroll-tbody"></tbody>
+                    </table>
+                </div>
+
+                <div class="po-total-row">
+                    <span>Total to disburse:</span>
+                    <span id="payroll-total">₹0.00</span>
+                </div>
+
+                <div class="inv-modal-footer">
+                    <button type="button" class="btn btn-secondary" data-close="payroll-modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Pay Selected</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="../Loginpage/script.js"></script>
+    <script src="../utils/toastify-utils.js"></script>
+    <script src="hr.js"></script>
+    <script src="../utils/notifications-widget.js"></script>
+</body>
+</html>

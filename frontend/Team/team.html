@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Team &amp; Payroll · Penny Pilot</title>
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap" rel="stylesheet">
+
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Toastify -->
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+
+    <!-- Premium Theme (shared) -->
+    <link rel="stylesheet" href="../utils/theme.css">
+    <link rel="stylesheet" href="../Clients/clients.css">
+</head>
+<body>
+    <!-- Floating Sidebar -->
+    <div class="sidebar">
+        <div class="sidebar-logo">
+            <div class="logo">
+                <div class="logo-icon"><i class="fas fa-coins"></i></div>
+                <div class="logo-text">Penny Pilot</div>
+            </div>
+        </div>
+
+        <div class="sidebar-menu">
+            <div class="menu-section">
+                <div class="menu-section-title">Overview</div>
+                <a href="../Dashboard/dashboard.html" class="menu-item">
+                    <i class="fas fa-chart-pie"></i><span>Dashboard</span>
+                </a>
+                <a href="../Investment/Investments.html" class="menu-item">
+                    <i class="fas fa-arrow-trend-up"></i><span>Investments</span>
+                </a>
+            </div>
+            <div class="menu-section">
+                <div class="menu-section-title">Finance</div>
+                <a href="../MoneyTransfer/moneytransfer.html" class="menu-item">
+                    <i class="fas fa-right-left"></i><span>Money Transfer</span>
+                </a>
+                <a href="../Debts/debts.html" class="menu-item">
+                    <i class="fas fa-hand-holding-dollar"></i><span>Debts</span>
+                </a>
+            </div>
+            <div class="menu-section">
+                <div class="menu-section-title">Workspace</div>
+                <a href="../Clients/clients.html" class="menu-item">
+                    <i class="fas fa-users"></i><span>Clients</span>
+                </a>
+                <a href="../Inventory/inventory.html" class="menu-item">
+                    <i class="fas fa-boxes-stacked"></i><span>Inventory</span>
+                </a>
+                <a href="../HR/hr.html" class="menu-item active">
+                    <i class="fas fa-id-badge"></i><span>HR &amp; Payroll</span>
+                </a>
+            </div>
+        </div>
+
+        <div class="logout-container">
+            <button class="logout-btn" id="logout-btn">
+                <i class="fas fa-arrow-right-from-bracket"></i><span>Sign Out</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="static-content">
+            <div class="navbar">
+                <div class="page-header">
+                    <h1 class="page-title">Team &amp; Payroll</h1>
+                    <p class="page-subtitle">Manage your team members and monthly payroll</p>
+                </div>
+                <div class="navbar-actions">
+                    <div class="user-profile">
+                        <div class="user-avatar" id="profile-icon"></div>
+                        <div class="user-tooltip" id="username-tooltip"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stats -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon"><i class="fas fa-users"></i></div>
+                    <div class="stat-content">
+                        <h3 id="total-team-members">0</h3>
+                        <p>Total Team Members</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon"><i class="fas fa-money-check-dollar"></i></div>
+                    <div class="stat-content">
+                        <h3 id="total-monthly-payroll">₹0</h3>
+                        <p>Total Monthly Payroll</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon"><i class="fas fa-wallet"></i></div>
+                    <div class="stat-content">
+                        <h3 id="team-wallet-balance">₹0</h3>
+                        <p>Wallet Balance (for payroll)</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Header + add button -->
+            <div class="content-header">
+                <h2><i class="fas fa-user-tie"></i> Team Members</h2>
+                <button class="btn btn-primary" id="add-team-member-btn">
+                    <i class="fas fa-plus"></i> Add Team Member
+                </button>
+            </div>
+        </div>
+
+        <!-- Sliding Section -->
+        <div class="sliding-section">
+            <div class="client-list-section">
+                <div class="section-header">
+                    <h3>Payroll Overview</h3>
+                </div>
+                <div id="clients-table" class="clients-table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Role / Designation</th>
+                                <th>Monthly Payroll (₹)</th>
+                                <th>Last Paid</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="team-table-body"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="client-list-section">
+                <div class="section-header">
+                    <h3>Payment History</h3>
+                    <select id="history-filter" onchange="filterPaymentHistory()" style="padding: 0.5rem 0.85rem; border-radius: 10px; border: 1px solid var(--border-strong); background: var(--bg-card); font-size: 13px; color: var(--text-primary); font-family: inherit;">
+                        <option value="">All Members</option>
+                    </select>
+                </div>
+                <div class="clients-table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Member Name</th>
+                                <th>Role</th>
+                                <th>Amount (₹)</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody id="payment-history-body">
+                            <tr>
+                                <td colspan="5" class="text-center">
+                                    <div class="empty-state">
+                                        <i class="fas fa-clock-rotate-left"></i>
+                                        <p>No payment history available</p>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add/Edit Team Member Modal -->
+    <div id="teamModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="team-modal-title">Add Team Member</h2>
+                <span class="close" onclick="closeTeamModal()">&times;</span>
+            </div>
+            <form id="teamForm">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="member-name">Full Name <span class="required">*</span></label>
+                        <input type="text" id="member-name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="member-role">Role / Designation <span class="required">*</span></label>
+                        <input type="text" id="member-role" required>
+                    </div>
+                </div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="member-payroll">Monthly Payroll (₹) <span class="required">*</span></label>
+                        <input type="number" id="member-payroll" min="0" step="0.01" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="member-hr">HR / Department</label>
+                        <input type="text" id="member-hr" placeholder="HR, Finance, Engineering...">
+                    </div>
+                </div>
+                <div class="form-section">
+                    <div class="form-group">
+                        <label for="member-notes">Notes</label>
+                        <textarea id="member-notes" rows="2" placeholder="Additional details about this team member..."></textarea>
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeTeamModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Save Member
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="../utils/toastify-utils.js"></script>
+    <script src="team.js"></script>
+</body>
+</html>

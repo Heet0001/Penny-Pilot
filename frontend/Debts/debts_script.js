@@ -180,6 +180,7 @@ document.querySelectorAll('input[type="date"]').forEach(input => {
     input.value = today;
 });
 
+
 // Menu items
 document.querySelectorAll('.menu-item').forEach(item => {
     item.addEventListener('click', function() {
@@ -359,7 +360,7 @@ function loadDebts() {
           //----------------------------------------------------------------------------------------
           
           // Then load transactions
-          fetch(`${BASE_URL}/debt-transactions/${currentUser.id}`)
+          fetch(`${BASE_URL}/user-debt-transactions/${currentUser.id}`)
             .then((response) => response.json())
             .then((txnData) => {
               if (txnData.success) {
@@ -670,6 +671,10 @@ function displayCombinedDebtList(debts, transactions) {
 
     container.innerHTML = "";
 
+    // Get date filter values
+    const fromDate = document.getElementById("debt-from-date")?.value || ""
+    const toDate = document.getElementById("debt-to-date")?.value || ""
+
     // Filter out debts with remaining_amount <= 0
     const filteredDebts = debts.filter(debt => parseFloat(debt.remaining_amount || debt.amount) > 0);
 
@@ -696,11 +701,32 @@ function displayCombinedDebtList(debts, transactions) {
         });
     });
 
+    // Apply date filter if dates are provided
+    let filteredItems = allItems
+    if (fromDate || toDate) {
+        filteredItems = allItems.filter(item => {
+            const itemDate = item.date
+            const from = fromDate ? new Date(fromDate) : null
+            const to = toDate ? new Date(toDate) : null
+            
+            if (from && to) {
+                to.setHours(23, 59, 59, 999) // Include the full end date
+                return itemDate >= from && itemDate <= to
+            } else if (from) {
+                return itemDate >= from
+            } else if (to) {
+                to.setHours(23, 59, 59, 999)
+                return itemDate <= to
+            }
+            return true
+        })
+    }
+
     // Sort by date (newest first)
-    allItems.sort((a, b) => b.sortKey - a.sortKey);
+    filteredItems.sort((a, b) => b.sortKey - a.sortKey);
 
     // Display items
-    allItems.forEach(item => {
+    filteredItems.forEach(item => {
         const card = document.createElement("div");
         card.className = "debt-card";
         card.style.cursor = "pointer";
@@ -971,115 +997,177 @@ function displayPaymentHistory(transactions) {
     paymentHistory.appendChild(table);
 }
 
-// Function to check for overdue debts and show notifications
+// Function to check for overdue debts and show notifications in navbar dropdown
 function checkOverdueDebts(debts) {
     const today = new Date();
     today.setHours(0, 0, 0, 0); // Normalize to start of day
+
     // Filter out debts with remaining_amount <= 0
-    const filteredDebts = debts.filter(debt => parseFloat(debt.remaining_amount || debt.amount) > 0);
+    const filteredDebts = debts.filter(
+        (debt) => parseFloat(debt.remaining_amount || debt.amount) > 0
+    );
+
     const overdueDebts = filteredDebts.filter((debt) => {
         const dueDate = new Date(debt.due_date);
         dueDate.setHours(0, 0, 0, 0);
         return dueDate < today && debt.status !== "fully_paid";
     });
+
     const upcomingDebts = filteredDebts.filter((debt) => {
         const dueDate = new Date(debt.due_date);
         dueDate.setHours(0, 0, 0, 0);
-        const daysRemaining = Math.ceil((dueDate - today) / (1000 * 60 * 60 * 24));
-        return daysRemaining <= 3 && daysRemaining >= 0 && debt.status !== "fully_paid";
+        const daysRemaining = Math.ceil(
+            (dueDate - today) / (1000 * 60 * 60 * 24)
+        );
+        return (
+            daysRemaining <= 3 &&
+            daysRemaining >= 0 &&
+            debt.status !== "fully_paid"
+        );
     });
 
-    if (overdueDebts.length > 0 || upcomingDebts.length > 0) {
-        // Create notification container if it doesn't exist
-        let notificationContainer = document.getElementById("debt-notification-container");
+    const notificationContainer = document.getElementById(
+        "debt-notification-container"
+    );
+    const notificationToggle = document.getElementById(
+        "debt-notification-toggle"
+    );
+    const notificationCountEl = document.getElementById(
+        "debt-notification-count"
+    );
 
-        if (!notificationContainer) {
-            notificationContainer = document.createElement("div");
-            notificationContainer.id = "debt-notification-container";
-            notificationContainer.style.position = "fixed";
-            notificationContainer.style.top = "80px";
-            notificationContainer.style.right = "20px";
-            notificationContainer.style.width = "300px";
-            notificationContainer.style.zIndex = "1000";
-            document.body.appendChild(notificationContainer);
-        }
+    if (!notificationContainer || !notificationToggle || !notificationCountEl) {
+        return;
+    }
 
-        // Clear existing notifications
-        notificationContainer.innerHTML = "";
+    const totalNotifications = overdueDebts.length + upcomingDebts.length;
 
-        // Add overdue notifications
-        overdueDebts.forEach((debt) => {
-            const dueDate = new Date(debt.due_date);
-            dueDate.setHours(0, 0, 0, 0);
-            const daysOverdue = Math.floor((today - dueDate) / (1000 * 60 * 60 * 24));
-            
-            const notification = document.createElement("div");
-            notification.style.backgroundColor = "#ffdddd";
-            notification.style.border = "1px solid #e74c3c";
-            notification.style.borderRadius = "5px";
-            notification.style.padding = "10px";
-            notification.style.marginBottom = "10px";
-            notification.style.boxShadow = "0 2px 4px rgba(0,0,0,0.1)";
+    // If no notifications, hide panel and badge
+    if (totalNotifications === 0) {
+        notificationContainer.style.display = "none";
+        notificationCountEl.style.display = "none";
+        return;
+    }
 
-            notification.innerHTML = `
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <h4 style="margin: 0; color: #e74c3c;">Overdue Debt</h4>
-                    <span class="close-notification" style="cursor: pointer; font-weight: bold;">&times;</span>
+    // Update badge count and show it
+    notificationCountEl.textContent = String(totalNotifications);
+    notificationCountEl.style.display = "inline-block";
+
+    // Clear existing notifications
+    notificationContainer.innerHTML = "";
+
+    // Helper to build a notification card with consistent styling
+    const buildNotificationCard = ({
+        title,
+        titleColor,
+        message,
+        amount,
+        accentColor,
+    }) => {
+        const notification = document.createElement("div");
+        notification.classList.add("debt-notification-item");
+        notification.style.backgroundColor = "#F9FAFB";
+        notification.style.borderRadius = "10px";
+        notification.style.padding = "10px 12px";
+        notification.style.marginBottom = "8px";
+        notification.style.borderLeft = `4px solid ${accentColor}`;
+
+        notification.innerHTML = `
+            <div style="display:flex; justify-content: space-between; align-items: center; gap: 8px;">
+                <div>
+                    <div style="font-size: 13px; font-weight: 600; color: ${titleColor}; margin-bottom: 4px;">${title}</div>
+                    <p style="margin: 0; font-size: 12px; color: #4B5563;">${message}</p>
+                    <p style="margin: 4px 0 0; font-size: 12px; font-weight: 500; color: ${accentColor};">Amount: ₹${amount}</p>
                 </div>
-                <p style="margin: 5px 0;">
-                    ${debt.debt_type === "given" ? "You need to collect from" : "You need to pay"} 
-                    ${debt.counterparty || "Unknown"} (${daysOverdue} days overdue)
-                </p>
-                <p style="margin: 5px 0;">Amount: ₹${parseFloat(debt.remaining_amount).toFixed(2)}</p>
-                <p style="margin: 5px 0; font-weight: 500; color: ${debt.debt_type === "given" ? "var(--success)" : "var(--danger)"}">
-                    ${debt.debt_type === "given" ? "Collect" : "Pay"} this debt
-                </p>
-            `;
+                <span class="close-notification" style="cursor:pointer; font-weight:bold; font-size:16px; color:#9CA3AF;">&times;</span>
+            </div>
+        `;
 
-            notificationContainer.appendChild(notification);
-
-            // Add close button functionality
-            notification.querySelector(".close-notification").addEventListener("click", function() {
-                notification.style.display = "none";
+        // Close handler for individual card
+        notification
+            .querySelector(".close-notification")
+            .addEventListener("click", () => {
+                notification.remove();
+                // If all notifications are closed manually, hide the panel and badge
+                if (notificationContainer.children.length === 0) {
+                    notificationContainer.style.display = "none";
+                    notificationCountEl.style.display = "none";
+                }
             });
+
+        return notification;
+    };
+
+    // Add overdue notifications
+    overdueDebts.forEach((debt) => {
+        const dueDate = new Date(debt.due_date);
+        dueDate.setHours(0, 0, 0, 0);
+        const daysOverdue = Math.floor(
+            (today - dueDate) / (1000 * 60 * 60 * 24)
+        );
+
+        const card = buildNotificationCard({
+            title: "Overdue Debt",
+            titleColor: "#B91C1C",
+            message: `${
+                debt.debt_type === "given"
+                    ? "You need to collect from"
+                    : "You need to pay"
+            } ${debt.counterparty || "Unknown"} (${daysOverdue} days overdue)`,
+            amount: parseFloat(debt.remaining_amount).toFixed(2),
+            accentColor:
+                debt.debt_type === "given" ? "var(--success)" : "var(--danger)",
         });
 
-        // Add upcoming due date notifications
-        upcomingDebts.forEach((debt) => {
-            const dueDate = new Date(debt.due_date);
-            dueDate.setHours(0, 0, 0, 0);
-            const daysRemaining = Math.ceil((dueDate - today) / (1000 * 60 * 60 * 24));
-            
-            const notification = document.createElement("div");
-            notification.style.backgroundColor = "#fff3cd";
-            notification.style.border = "1px solid #ffeeba";
-            notification.style.borderRadius = "5px";
-            notification.style.padding = "10px";
-            notification.style.marginBottom = "10px";
-            notification.style.boxShadow = "0 2px 4px rgba(0,0,0,0.1)";
+        notificationContainer.appendChild(card);
+    });
 
-            notification.innerHTML = `
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <h4 style="margin: 0; color: #856404;">Upcoming Due Date</h4>
-                    <span class="close-notification" style="cursor: pointer; font-weight: bold;">&times;</span>
-                </div>
-                <p style="margin: 5px 0;">
-                    ${debt.debt_type === "given" ? "You need to collect from" : "You need to pay"} 
-                    ${debt.counterparty || "Unknown"} (in ${daysRemaining} days)
-                </p>
-                <p style="margin: 5px 0;">Amount: ₹${parseFloat(debt.remaining_amount).toFixed(2)}</p>
-                <p style="margin: 5px 0; font-weight: 500; color: ${debt.debt_type === "given" ? "var(--success)" : "var(--danger)"}">
-                    ${debt.debt_type === "given" ? "Collect" : "Pay"} this debt
-                </p>
-            `;
+    // Add upcoming due date notifications
+    upcomingDebts.forEach((debt) => {
+        const dueDate = new Date(debt.due_date);
+        dueDate.setHours(0, 0, 0, 0);
+        const daysRemaining = Math.ceil(
+            (dueDate - today) / (1000 * 60 * 60 * 24)
+        );
 
-            notificationContainer.appendChild(notification);
-
-            // Add close button functionality
-            notification.querySelector(".close-notification").addEventListener("click", function() {
-                notification.style.display = "none";
-            });
+        const card = buildNotificationCard({
+            title: "Upcoming Due Date",
+            titleColor: "#92400E",
+            message: `${
+                debt.debt_type === "given"
+                    ? "You need to collect from"
+                    : "You need to pay"
+            } ${debt.counterparty || "Unknown"} (in ${daysRemaining} days)`,
+            amount: parseFloat(debt.remaining_amount).toFixed(2),
+            accentColor:
+                debt.debt_type === "given" ? "var(--success)" : "var(--danger)",
         });
+
+        notificationContainer.appendChild(card);
+    });
+
+    // Show panel automatically when landing on Debts if there are notifications
+    notificationContainer.style.display = "block";
+
+    // Toggle behaviour via bell button (only set up once)
+    if (!notificationToggle.dataset.bound) {
+        notificationToggle.addEventListener("click", (e) => {
+            e.stopPropagation();
+            const isVisible = notificationContainer.style.display === "block";
+            notificationContainer.style.display = isVisible ? "none" : "block";
+        });
+
+        // Hide when clicking outside the dropdown
+        document.addEventListener("click", (event) => {
+            if (
+                !notificationContainer.contains(event.target) &&
+                !notificationToggle.contains(event.target)
+            ) {
+                notificationContainer.style.display = "none";
+            }
+        });
+
+        notificationToggle.dataset.bound = "true";
     }
 }
 
@@ -1105,7 +1193,7 @@ function loadRecentTransactions() {
         return;
     }
 
-    fetch(`${BASE_URL}/debt-transactions/${currentUser.id}`)
+    fetch(`${BASE_URL}/user-debt-transactions/${currentUser.id}`)
         .then((response) => {
             if (!response.ok) {
                 throw new Error("Network response was not ok");
@@ -1482,7 +1570,33 @@ document.addEventListener("DOMContentLoaded", function() {
     const currentUser = getCurrentUser();
     if (currentUser) {
         updateProfileIcon(currentUser);
-    }if (exportPdfBtn) {
+    }
+    
+    // Set default dates (last 30 days)
+    const todayDate = new Date()
+    const thirtyDaysAgo = new Date()
+    thirtyDaysAgo.setDate(todayDate.getDate() - 30)
+    
+    const fromDateInput = document.getElementById("debt-from-date")
+    const toDateInput = document.getElementById("debt-to-date")
+    
+    if (fromDateInput && toDateInput) {
+      fromDateInput.value = thirtyDaysAgo.toISOString().split('T')[0]
+      toDateInput.value = todayDate.toISOString().split('T')[0]
+    }
+
+    // Date filter event listeners
+    document.getElementById("apply-debt-filter")?.addEventListener("click", () => {
+        loadDebts()
+    })
+
+    document.getElementById("clear-debt-filter")?.addEventListener("click", () => {
+        if (fromDateInput) fromDateInput.value = ""
+        if (toDateInput) toDateInput.value = ""
+        loadDebts()
+    })
+    
+    if (exportPdfBtn) {
         exportPdfBtn.addEventListener('click', () => showModal('pdf-export-modal'));
     }
     
@@ -1545,10 +1659,10 @@ document.getElementById('cancel-pdf-export')?.addEventListener('click', function
     });
     
     // Set default dates for all date inputs
-    const today = new Date().toISOString().split('T')[0];
+    const todayDateString = new Date().toISOString().split('T')[0];
     document.querySelectorAll('input[type="date"]').forEach(input => {
         if (!input.value) {
-            input.value = today;
+            input.value = todayDateString;
         }
     });
 });

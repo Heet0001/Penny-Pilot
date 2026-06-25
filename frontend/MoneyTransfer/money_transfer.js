@@ -14,6 +14,20 @@ document.addEventListener("DOMContentLoaded", () => {
   initializeUI()
   loadWalletBalance()
   setupEventListeners()
+  
+  // Set default dates for recent transfers filter (last 30 days)
+  const today = new Date()
+  const thirtyDaysAgo = new Date()
+  thirtyDaysAgo.setDate(today.getDate() - 30)
+  
+  const recentFromDate = document.getElementById("recent-from-date")
+  const recentToDate = document.getElementById("recent-to-date")
+  
+  if (recentFromDate && recentToDate) {
+    recentFromDate.value = thirtyDaysAgo.toISOString().split('T')[0]
+    recentToDate.value = today.toISOString().split('T')[0]
+  }
+  
   loadRecentTransfers()
   checkPendingTransfers()
   initModal()
@@ -167,6 +181,19 @@ function setupEventListeners() {
   // Transfer history button
   document.getElementById("transfer-history-btn")?.addEventListener("click", () => {
     showTransferHistory()
+  })
+
+  // Date filter buttons for recent transfers
+  document.getElementById("apply-recent-filter")?.addEventListener("click", () => {
+    loadRecentTransfers()
+  })
+
+  document.getElementById("clear-recent-filter")?.addEventListener("click", () => {
+    const fromDateInput = document.getElementById("recent-from-date")
+    const toDateInput = document.getElementById("recent-to-date")
+    if (fromDateInput) fromDateInput.value = ""
+    if (toDateInput) toDateInput.value = ""
+    loadRecentTransfers()
   })
 }
 
@@ -454,11 +481,35 @@ function loadRecentTransfers() {
         ...(receivedData.transfers || []).map((t) => ({ ...t, direction: "received" })),
       ].sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
 
-      if (allTransfers.length === 0) {
+      // Apply date filter if provided
+      const fromDateVal = document.getElementById("recent-from-date")?.value || ""
+      const toDateVal = document.getElementById("recent-to-date")?.value || ""
+
+      let filteredTransfers = allTransfers
+      if (fromDateVal || toDateVal) {
+        filteredTransfers = allTransfers.filter(transfer => {
+          const transferDate = new Date(transfer.created_at)
+          const from = fromDateVal ? new Date(fromDateVal) : null
+          const to = toDateVal ? new Date(toDateVal) : null
+
+          if (from && to) {
+            to.setHours(23, 59, 59, 999) // include full end date
+            return transferDate >= from && transferDate <= to
+          } else if (from) {
+            return transferDate >= from
+          } else if (to) {
+            to.setHours(23, 59, 59, 999)
+            return transferDate <= to
+          }
+          return true
+        })
+      }
+
+      if (filteredTransfers.length === 0) {
         recentTransfersList.innerHTML = `
         <div class="empty-state">
           <i class="fas fa-exchange-alt"></i>
-          <p>Your recent transfers will appear here</p>
+          <p>No transfers found for the selected date range</p>
         </div>
       `
         return
@@ -467,7 +518,7 @@ function loadRecentTransfers() {
       recentTransfersList.innerHTML = ""
 
       // Display transfers
-      allTransfers.slice(0, 10).forEach((transfer) => {
+      filteredTransfers.slice(0, 10).forEach((transfer) => {
         const transferItem = document.createElement("div")
         transferItem.className = "recent-transfer-item"
 
@@ -655,9 +706,23 @@ function showTransferHistory() {
               <button class="tab-btn" data-tab="received">Received</button>
               <button class="tab-btn" data-tab="pending">Pending</button>
             </div>
-            <button id="export-pdf-btn" class="export-pdf-btn">
-              <i class="fas fa-file-pdf"></i> Export PDF
-            </button>
+            <div class="history-actions">
+              <div class="date-filter-container">
+                <label for="history-from-date">From:</label>
+                <input type="date" id="history-from-date" class="date-filter-input">
+                <label for="history-to-date">To:</label>
+                <input type="date" id="history-to-date" class="date-filter-input">
+                <button id="apply-date-filter" class="filter-btn">
+                  <i class="fas fa-filter"></i> Apply Filter
+                </button>
+                <button id="clear-date-filter" class="filter-btn">
+                  <i class="fas fa-times"></i> Clear
+                </button>
+              </div>
+              <button id="export-pdf-btn" class="export-pdf-btn">
+                <i class="fas fa-file-pdf"></i> Export PDF
+              </button>
+            </div>
           </div>
           
           <div class="transfer-history-content">
@@ -700,10 +765,12 @@ function showTransferHistory() {
 
         // Show selected tab content
         const tabName = this.getAttribute("data-tab")
-        document.getElementById(`${tabName}-transfers`).style.display = "block"
-
-        // Load data for the selected tab
-        loadTransferHistory(tabName)
+        const tabContent = document.getElementById(`${tabName}-transfers`)
+        if (tabContent) {
+          tabContent.style.display = "block"
+          // Load data for the selected tab immediately
+          loadTransferHistory(tabName)
+        }
       })
     })
     
@@ -714,12 +781,69 @@ function showTransferHistory() {
         showPdfExportModal()
       })
     }
+
+    // Set default dates (last 30 days)
+    const today = new Date()
+    const thirtyDaysAgo = new Date()
+    thirtyDaysAgo.setDate(today.getDate() - 30)
+    
+    const fromDateInput = historyModal.querySelector("#history-from-date")
+    const toDateInput = historyModal.querySelector("#history-to-date")
+    
+    if (fromDateInput && toDateInput) {
+      fromDateInput.value = thirtyDaysAgo.toISOString().split('T')[0]
+      toDateInput.value = today.toISOString().split('T')[0]
+    }
+
+    // Add date filter event listeners
+    const applyFilterBtn = historyModal.querySelector("#apply-date-filter")
+    const clearFilterBtn = historyModal.querySelector("#clear-date-filter")
+    
+    if (applyFilterBtn) {
+      applyFilterBtn.addEventListener('click', () => {
+        const activeTab = historyModal.querySelector('.tab-btn.active')
+        if (activeTab) {
+          loadTransferHistory(activeTab.getAttribute('data-tab'))
+        }
+      })
+    }
+    
+    if (clearFilterBtn) {
+      clearFilterBtn.addEventListener('click', () => {
+        if (fromDateInput) fromDateInput.value = ""
+        if (toDateInput) toDateInput.value = ""
+        const activeTab = historyModal.querySelector('.tab-btn.active')
+        if (activeTab) {
+          loadTransferHistory(activeTab.getAttribute('data-tab'))
+        }
+      })
+    }
   }
+
+  // Ensure the Sent tab is active and visible on open
+  const tabButtons = historyModal.querySelectorAll(".tab-btn")
+  const tabContents = historyModal.querySelectorAll(".tab-content")
+
+  tabButtons.forEach(btn => {
+    if (btn.getAttribute("data-tab") === "sent") {
+      btn.classList.add("active")
+    } else {
+      btn.classList.remove("active")
+    }
+  })
+
+  tabContents.forEach(content => {
+    if (content.id === "sent-transfers") {
+      content.style.display = "block"
+    } else {
+      content.style.display = "none"
+    }
+  })
 
   // Show the modal
   historyModal.style.display = "flex"
 
-  // Load data for the active tab
+  // Always load Sent transfers first
   loadTransferHistory("sent")
 }
 
@@ -731,6 +855,10 @@ function loadTransferHistory(type) {
   if (!currentUser || !contentElement) return
 
   contentElement.innerHTML = "<p class='loading-text'><i class='fas fa-spinner fa-spin'></i> Loading...</p>"
+
+  // Get date filter values
+  const fromDate = document.getElementById("history-from-date")?.value || ""
+  const toDate = document.getElementById("history-to-date")?.value || ""
 
   let endpoint
   switch (type) {
@@ -761,10 +889,41 @@ function loadTransferHistory(type) {
         return
       }
 
+      // Filter transfers by date if date filters are applied
+      let filteredTransfers = data.transfers
+      if (fromDate || toDate) {
+        filteredTransfers = data.transfers.filter(transfer => {
+          const transferDate = new Date(transfer.created_at)
+          const from = fromDate ? new Date(fromDate) : null
+          const to = toDate ? new Date(toDate) : null
+          
+          if (from && to) {
+            to.setHours(23, 59, 59, 999) // Include the full end date
+            return transferDate >= from && transferDate <= to
+          } else if (from) {
+            return transferDate >= from
+          } else if (to) {
+            to.setHours(23, 59, 59, 999)
+            return transferDate <= to
+          }
+          return true
+        })
+      }
+
+      if (filteredTransfers.length === 0) {
+        contentElement.innerHTML = `
+          <div class="empty-transfers">
+            <i class="fas fa-exchange-alt"></i>
+            <p>No ${type} transfers found for the selected date range</p>
+          </div>
+        `
+        return
+      }
+
       // Create cards to display transfers (similar to investment holdings)
       let transfersHTML = `<div class="transfers-grid">`
 
-      data.transfers.forEach((transfer) => {
+      filteredTransfers.forEach((transfer) => {
         const date = new Date(transfer.created_at).toLocaleDateString()
         const amount = Number.parseFloat(transfer.amount).toFixed(2)
         const otherParty = type === "sent" ? transfer.recipient_name : transfer.sender_name
@@ -992,6 +1151,42 @@ historyStyle.textContent = `
       .tab-btn.active {
           color: #4CAF50;
           border-bottom: 2px solid #4CAF50;
+      }
+      
+      .history-actions {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 20px;
+          gap: 10px;
+      }
+      
+      .date-filter-container {
+          display: flex;
+          gap: 10px;
+          align-items: center;
+          flex-wrap: wrap;
+      }
+      
+      .date-filter-input {
+          padding: 5px;
+          border-radius: 4px;
+          border: 1px solid #ddd;
+          font-size: 14px;
+      }
+      
+      .filter-btn {
+          padding: 5px 10px;
+          background: #6C5CE7;
+          color: white;
+          border: none;
+          border-radius: 4px;
+          cursor: pointer;
+          font-size: 12px;
+      }
+      
+      .filter-btn:hover {
+          background: #5a4fd6;
       }
       
       .transfers-table {

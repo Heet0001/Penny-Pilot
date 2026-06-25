@@ -3,56 +3,73 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Penny Pilot</title>
-    <link rel="stylesheet" href="/Loginpage/style.css">
-    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+    <title>Penny Pilot · Sign In</title>
+    <meta name="theme-color" content="#047857">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300..700;1,300..700&amp;display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <link rel="stylesheet" href="style.css">
+
+    <!-- Toastify (professional notifications) -->
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+    <script src="../utils/toastify-utils.js"></script>
 </head>
 <body>
-<div class="container" id="container">
-	<div class="form-container sign-up-container">
-		<form action="#">
-			<h1>Create Account</h1><br>
-			<span>Use your email for registration</span>
-			<input type="text" placeholder="Name" id="signup-name" />
-			<input type="email" placeholder="Email" id="signup-email" />
-			<input type="password" placeholder="Password" id="signup-password" />
-			<div class="password-requirements">
-				Password must have:
-				<ul>
-					<li>At least 8 characters</li>
-					<li>At least 1 uppercase letter</li>
-					<li>At least 1 special character</li>
-					<li>At least 3 numbers</li>
-				</ul>
-			</div>
-			<button type="submit">Sign Up</button>
-		</form>
-	</div>
-	<div class="form-container sign-in-container">
-		<form action="#">
-			<h1>Sign in</h1><br>
-			<span>use your account</span>
-			<input type="email" placeholder="Email" id="signin-email" />
-			<input type="password" placeholder="Password" id="signin-password" />
-			<button type="submit">Sign In</button>
-		</form>
-	</div>
-	<div class="overlay-container">
-		<div class="overlay">
-			<div class="overlay-panel overlay-left">
-				<h1>Welcome Back!</h1>
-				<p>To keep connected with us please login with your personal info</p>
-				<button class="ghost" id="signIn">Sign In</button>
-			</div>
-			<div class="overlay-panel overlay-right">
-				<h1>Hello, Friend!</h1>
-				<p>Enter your personal details and start journey with us</p>
-				<button class="ghost" id="signUp">Sign Up</button>
-			</div>
-		</div>
-	</div>
-</div>
+    <div class="login-backdrop" aria-hidden="true">
+        <div class="login-backdrop__photo"></div>
+    </div>
 
-<script src="/Loginpage/script.js"></script>
+    <main class="auth-shell" id="authRoot">
+        <div class="auth-card">
+            <header class="auth-card__hero">
+                <p class="auth-card__badge"><i class="fa-solid fa-wallet" aria-hidden="true"></i> Penny Pilot</p>
+                <h1 class="auth-card__title" id="authHeroTitle">Sign in</h1>
+                <p class="auth-card__subtitle" id="authHeroSubtitle">Welcome back — pick up where you left off.</p>
+            </header>
+
+            <div class="auth-tabs" role="tablist" aria-label="Account">
+                <button type="button" class="auth-tabs__btn" role="tab" id="tab-signin" aria-controls="panel-signin" aria-selected="true" tabindex="0">Sign in</button>
+                <button type="button" class="auth-tabs__btn" role="tab" id="tab-signup" aria-controls="panel-signup" aria-selected="false" tabindex="-1">Create account</button>
+            </div>
+
+            <div id="panel-signin" class="auth-panel" role="tabpanel" aria-labelledby="tab-signin">
+                <form class="auth-form sign-in-container" action="#">
+                    <label class="sr-only" for="signin-email">Email</label>
+                    <input type="email" placeholder="Email" id="signin-email" autocomplete="email" />
+                    <label class="sr-only" for="signin-password">Password</label>
+                    <input type="password" placeholder="Password" id="signin-password" autocomplete="current-password" />
+                    <button type="submit">Sign In</button>
+                </form>
+            </div>
+
+            <div id="panel-signup" class="auth-panel" role="tabpanel" aria-labelledby="tab-signup" hidden>
+                <form class="auth-form sign-up-container" action="#">
+                    <label class="sr-only" for="signup-name">Name</label>
+                    <input type="text" placeholder="Full name" id="signup-name" autocomplete="name" />
+                    <label class="sr-only" for="signup-email">Email</label>
+                    <input type="email" placeholder="Email" id="signup-email" autocomplete="email" />
+                    <label class="sr-only" for="signup-password">Password</label>
+                    <input type="password" placeholder="Password" id="signup-password" autocomplete="new-password" />
+                    <div class="password-requirements">
+                        <strong>Password must include:</strong>
+                        <ul>
+                            <li>At least 8 characters</li>
+                            <li>At least 1 uppercase letter</li>
+                            <li>At least 1 special character</li>
+                            <li>At least 3 numbers</li>
+                        </ul>
+                    </div>
+                    <button type="submit">Sign Up</button>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <script src="script.js"></script>
 </body>
 </html>
