@@ -261,18 +261,22 @@ export function createInventoryRouter({ db, checkAuth, updateWalletBalance }) {
 
   router.get('/purchase-orders', (req, res) => {
     const userId = req.user.id;
+    // Avoid GROUP BY with a JOINed non-aggregated column (s.name). TiDB's
+    // ONLY_FULL_GROUP_BY is stricter than MySQL's; a correlated subquery for
+    // line_items keeps this portable across both engines.
     const sql = `
       SELECT po.*, s.name AS supplier_name,
-             COUNT(poi.id) AS line_items
+             (SELECT COUNT(*) FROM purchase_order_items poi WHERE poi.po_id = po.id) AS line_items
       FROM purchase_orders po
       LEFT JOIN suppliers s ON po.supplier_id = s.id
-      LEFT JOIN purchase_order_items poi ON poi.po_id = po.id
       WHERE po.user_id = ?
-      GROUP BY po.id
       ORDER BY po.created_at DESC
     `;
     db.query(sql, [userId], (err, rows) => {
-      if (err) return res.status(500).json({ error: 'Database error' });
+      if (err) {
+        console.error('[INV] purchase-orders list error:', err);
+        return res.status(500).json({ error: 'Database error' });
+      }
       res.json({ success: true, purchase_orders: rows });
     });
   });
