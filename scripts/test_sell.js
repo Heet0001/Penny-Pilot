@@ -1,5 +1,5 @@
 // Test script to verify sell functionality
-// Run this with: node test_sell.js
+// Run this with: node scripts/test_sell.js
 
 const fetch = require('node-fetch');
 

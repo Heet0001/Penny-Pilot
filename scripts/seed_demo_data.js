@@ -7,12 +7,12 @@
 // Idempotent: employees are keyed by employee_code, suppliers by name, products
 // by sku — re-running will not create duplicates.
 //
-// Usage:  node seed_demo_data.js            (defaults to user id 1)
-//         node seed_demo_data.js 2          (seed user id 2)
+// Usage:  node scripts/seed_demo_data.js          (defaults to user id 1)
+//         node scripts/seed_demo_data.js 2        (seed user id 2)
 
 import dotenv from 'dotenv';
 import mysql from 'mysql2/promise';
-import { computePayslip } from './routes/hr.js';
+import { computePayslip } from '../routes/hr.js';
 
 dotenv.config();
 
