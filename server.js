@@ -2136,11 +2136,17 @@ app.post("/respond-to-transfer", (req, res) => {
                   return
                 }
 
-                // Record debit entry for sender
+                // Record debit entry for sender. The 'Money Transfer' category
+                // must exist in both credit_entries.category and
+                // debit_entries.category ENUMs; see penny_pilot_unified.sql.
+                // We do NOT reference a recipient_id column because the schema
+                // doesn't have one - the recipient is encoded in description.
+                const transferDesc = (transferData.description && String(transferData.description).trim())
+                  || "No description"
                 const debitQuery = `
-                  INSERT INTO debit_entries 
-                  (user_id, amount, category, entry_date, description, recipient_id) 
-                  VALUES (?, ?, 'Money Transfer', ?, ?, ?)
+                  INSERT INTO debit_entries
+                    (user_id, amount, category, entry_date, description)
+                  VALUES (?, ?, 'Money Transfer', ?, ?)
                 `
                 db.query(
                   debitQuery,
@@ -2148,19 +2154,19 @@ app.post("/respond-to-transfer", (req, res) => {
                     sender_id,
                     transferAmount,
                     transferDate,
-                    `Transfer to user ID ${recipient_id}: ${transferData.description || "No description"}`,
-                    recipient_id,
+                    `Transfer to user ID ${recipient_id}: ${transferDesc}`,
                   ],
                   (debitErr) => {
                     if (debitErr) {
-                      console.error("Error creating debit entry:", debitErr)
-                      // Continue anyway, wallet updates are more important
+                      console.error(
+                        `[TRANSFER] FAILED to insert debit_entries row for sender ${sender_id} on transfer #${transfer_id}:`,
+                        debitErr,
+                      )
                     }
 
-                    // Record credit entry for recipient
                     const creditQuery = `
-                      INSERT INTO credit_entries 
-                      (user_id, amount, category, entry_date, description) 
+                      INSERT INTO credit_entries
+                        (user_id, amount, category, entry_date, description)
                       VALUES (?, ?, 'Money Transfer', ?, ?)
                     `
                     db.query(
@@ -2169,24 +2175,29 @@ app.post("/respond-to-transfer", (req, res) => {
                         recipient_id,
                         transferAmount,
                         transferDate,
-                        `Received from user ID ${sender_id}: ${transferData.description || "No description"}`,
+                        `Received from user ID ${sender_id}: ${transferDesc}`,
                       ],
                       (creditErr) => {
                         if (creditErr) {
-                          console.error("Error creating credit entry:", creditErr)
-                          // Continue anyway, wallet updates are more important
+                          console.error(
+                            `[TRANSFER] FAILED to insert credit_entries row for recipient ${recipient_id} on transfer #${transfer_id}:`,
+                            creditErr,
+                          )
                         }
 
                         console.log(`[TRANSFER] Successfully processed transfer #${transfer_id}:
                           Amount: ${transferAmount}
                           From: ${sender_id}
                           To: ${recipient_id}
-                          Status: ${response}`)
+                          Status: ${response}
+                          DebitEntryOk: ${!debitErr}
+                          CreditEntryOk: ${!creditErr}`)
 
                         res.json({
                           success: true,
                           message: `Transfer ${response} successfully`,
                           transfer_id: transfer_id,
+                          entries_recorded: !debitErr && !creditErr,
                         })
                       },
                     )
