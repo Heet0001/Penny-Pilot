@@ -1,8 +1,0 @@
-Reorganize repo: move docs and dev scripts into dedicated folders
-
-- docs/: ER-diagram.png, ERP_CRM_ENHANCEMENT_RECOMMENDATIONS.md
-- scripts/: migrate_debit_categories.js, seed_demo_data.js, test_sell.js
-- Updated import path in seed_demo_data.js to reference ../routes/hr.js
-- Root now contains only runtime essentials: server.js, package.json,
-  penny_pilot_unified.sql, vercel.json, .gitignore, README.md, and the
-  frontend/, routes/, services/ directories
