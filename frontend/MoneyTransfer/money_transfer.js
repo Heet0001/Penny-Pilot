@@ -147,6 +147,9 @@ function initializeUI() {
 function loadWalletBalance() {
   const currentUser = JSON.parse(localStorage.getItem("currentUser"))
   if (!currentUser) return
+  
+  // Show loading feedback (optional, only for manual refresh)
+  // const loadingToast = showToastLoading("Updating wallet balance...");
 
   fetch(`${BASE_URL}/get-wallet-balance/${currentUser.id}`)
     .then((response) => response.json())
@@ -225,7 +228,7 @@ function handleLogout() {
 async function sendMoneyTransfer() {
   const currentUser = JSON.parse(localStorage.getItem("currentUser"))
   if (!currentUser) {
-    alert("User not logged in. Please log in again.")
+    showToastError("🔒 User not logged in. Please log in again.")
     return
   }
 
@@ -246,7 +249,7 @@ async function sendMoneyTransfer() {
     const description = document.getElementById("transfer-description").value
 
     if (!recipientEmail || !amount || amount <= 0) {
-      alert("Please enter valid recipient email and amount")
+      showToastWarning("⚠️ Please enter valid recipient email and amount")
       if (submitButton) {
         submitButton.disabled = false
         submitButton.textContent = "Send Money"
@@ -256,7 +259,7 @@ async function sendMoneyTransfer() {
 
     // Check if the user is trying to send money to themselves
     if (recipientEmail.toLowerCase() === currentUser.email.toLowerCase()) {
-      alert("You cannot send money to yourself.")
+      showToastWarning("⛔ You cannot send money to yourself.")
       if (submitButton) {
         submitButton.disabled = false
         submitButton.textContent = "Send Money"
@@ -269,7 +272,7 @@ async function sendMoneyTransfer() {
     const walletData = await walletResponse.json()
 
     if (walletData.balance < amount) {
-      alert("Insufficient wallet balance for this transfer")
+      showToastError("💵 Insufficient wallet balance for this transfer")
       if (submitButton) {
         submitButton.disabled = false
         submitButton.textContent = "Send Money"
@@ -282,7 +285,7 @@ async function sendMoneyTransfer() {
     const userData = await userCheck.json()
 
     if (!userData.exists) {
-      alert("Recipient not found. Please check the email address.")
+      showToastError("🔍 Recipient not found. Please check the email address.")
       if (submitButton) {
         submitButton.disabled = false
         submitButton.textContent = "Send Money"
@@ -308,7 +311,7 @@ async function sendMoneyTransfer() {
 
       // Validate debt dates
       if (!startDate || !dueDate) {
-        alert("Please enter both start and due dates for debt transfers")
+        showToastWarning("📅 Please enter both start and due dates for debt transfers")
         if (submitButton) {
           submitButton.disabled = false
           submitButton.textContent = "Send Money"
@@ -317,7 +320,7 @@ async function sendMoneyTransfer() {
       }
 
       if (new Date(dueDate) <= new Date(startDate)) {
-        alert("Due date must be after start date")
+        showToastError("📅 Due date must be after start date")
         if (submitButton) {
           submitButton.disabled = false
           submitButton.textContent = "Send Money"
@@ -344,7 +347,7 @@ async function sendMoneyTransfer() {
     const result = await transferResponse.json()
 
     if (result.success) {
-      alert(`Money transfer (${transferType}) initiated successfully!`)
+      showToastSuccess(`🚀 Money transfer (${transferType}) initiated successfully!`)
       closeModal()
 
       // Refresh wallet and transfers
@@ -356,11 +359,11 @@ async function sendMoneyTransfer() {
       document.getElementById("transfer-amount").value = ""
       document.getElementById("transfer-description").value = ""
     } else {
-      alert(`Error: ${result.message}`)
+      showToastError(`❌ Error: ${result.message}`)
     }
   } catch (error) {
     console.error("Transfer error:", error)
-    alert("An error occurred during transfer")
+    showToastError("❌ An error occurred during transfer")
   } finally {
     // Re-enable the submit button
     if (submitButton) {
@@ -386,6 +389,7 @@ function checkPendingTransfers() {
 
         // Display pending transfers
         displayPendingTransfers(data.transfers)
+        showToastInfo(`🔔 You have ${data.transfers.length} pending transfer(s) awaiting your response!`)
       } else {
         const pendingCountElement = document.getElementById("pending-count")
         if (pendingCountElement) {

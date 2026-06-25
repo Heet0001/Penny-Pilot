@@ -86,6 +86,7 @@
     border-color: var(--border-strong);
     box-shadow: var(--shadow-md);
 }
+
 .chart-wrapper canvas {
     width: 100% !important;
     height: var(--chart-canvas-height) !important;

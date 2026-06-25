@@ -62,6 +62,7 @@ document.addEventListener("DOMContentLoaded", function () {
     document.getElementById("username-tooltip").textContent = currentUser.name;
 
     // Initialize balances and transactions
+    showToastInfo("🎆 Welcome to Penny Pilot! Loading your financial data...");
     initializeBalances();
     loadRecentTransactions();
 
@@ -363,6 +364,10 @@ document.addEventListener("DOMContentLoaded", function () {
                 localStorage.setItem(`wallet_balance_${currentUser.id}`, balance.toFixed(2));
                 walletLoaded = true;
                 displayWalletBalance();
+                
+                // Hide loading toast and show success
+                hideToast(loadingToast);
+                showToastSuccess("💰 Financial data loaded successfully!");
             })
             .catch(error => {
                 console.error('Error fetching wallet balance:', error);
@@ -754,7 +759,7 @@ document.addEventListener("DOMContentLoaded", function () {
         
         const currentUser = JSON.parse(localStorage.getItem("currentUser"));
         if (!currentUser) {
-            alert("User not logged in. Please log in again.");
+            showToastError("🔒 User not logged in. Please log in again.");
             return;
         }
 
@@ -764,21 +769,21 @@ document.addEventListener("DOMContentLoaded", function () {
         const descriptionInput = document.getElementById("entry-description");
         
         if (!amountInput.value || !dateInput.value) {
-            alert("Please fill in the required fields (Amount & Date)!");
+            showToastWarning("⚠️ Please fill in the required fields (Amount & Date)!");
             return;
         }
 
         // Validate category - only allow values from the database ENUM
         const validCategories = ['Salary', 'Debt Taken', 'Investments Relieved', 'From Emergency', 'Other'];
         if (!categoryInput.value || !validCategories.includes(categoryInput.value)) {
-            alert("Please select a valid category from the dropdown!");
+            showToastWarning("📄 Please select a valid category from the dropdown!");
             return;
         }
 
         // Parse and format amount
         const amount = parseFloat(amountInput.value);
         if (isNaN(amount) || amount <= 0) {
-            alert("Please enter a valid amount!");
+            showToastWarning("💲 Please enter a valid amount!");
             return;
         }
 
@@ -820,11 +825,11 @@ document.addEventListener("DOMContentLoaded", function () {
             // Reload transactions
             loadRecentTransactions();
             
-            alert("Credit entry added successfully!");
+            showToastSuccess("💰 Credit entry added successfully!");
         })
         .catch(error => {
             console.error('Error saving credit entry:', error);
-            alert("Failed to save entry. Please try again.");
+            showToastError("❌ Failed to save entry. Please try again.");
         });
     }
 
@@ -834,7 +839,7 @@ document.addEventListener("DOMContentLoaded", function () {
         
         const currentUser = JSON.parse(localStorage.getItem("currentUser"));
         if (!currentUser) {
-            alert("User not logged in. Please log in again.");
+            showToastError("🔒 User not logged in. Please log in again.");
             return;
         }
 
@@ -842,16 +847,15 @@ document.addEventListener("DOMContentLoaded", function () {
         const categoryInput = document.getElementById("debit-category");
         const dateInput = document.getElementById("debit-date");
         const descriptionInput = document.getElementById("debit-description");
-        
         if (!amountInput.value || !dateInput.value) {
-            alert("Please fill in the required fields (Amount & Date)!");
+            showToastWarning("⚠️ Please fill in the required fields (Amount & Date)!");
             return;
         }
 
         // Validate category - only allow values from the database ENUM
         const validCategories = ['Food', 'Transport', 'Entertainment', 'Bills', 'Emergency', 'Other'];
         if (!categoryInput.value || !validCategories.includes(categoryInput.value)) {
-            alert("Please select a valid category from the dropdown!");
+            showToastWarning("📄 Please select a valid category from the dropdown!");
             return;
         }
 
@@ -901,11 +905,11 @@ document.addEventListener("DOMContentLoaded", function () {
             // Reload transactions
             loadRecentTransactions();
             
-            alert("Debit entry added successfully!");
+            showToastSuccess("💸 Debit entry added successfully!");
         })
         .catch(error => {
             console.error('Error saving debit entry:', error);
-            alert("Failed to save entry. Please try again.");
+            showToastError("❌ Failed to save entry. Please try again.");
         });
     }
 
@@ -915,7 +919,7 @@ document.addEventListener("DOMContentLoaded", function () {
         
         const currentUser = JSON.parse(localStorage.getItem("currentUser"));
         if (!currentUser) {
-            alert("User not logged in. Please log in again.");
+            showToastError("🔒 User not logged in. Please log in again.");
             return;
         }
     
@@ -924,7 +928,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const action = document.querySelector('input[name="fundAction"]:checked').value;
         
         if (!amountInput.value || isNaN(amountInput.value) || !dateInput.value) {
-            alert("Please enter a valid amount and date!");
+            showToastWarning("⚠️ Please enter a valid amount and date!");
             return;
         }
     
@@ -969,17 +973,17 @@ document.addEventListener("DOMContentLoaded", function () {
             closeModal(emergencyModal);
             // Reload transactions
             loadRecentTransactions();
-            alert(`Emergency fund ${action === 'add' ? 'contribution' : 'withdrawal'} successful!`);
+            showToastSuccess(`🐷 Emergency fund ${action === 'add' ? 'contribution' : 'withdrawal'} successful!`);
         })
         .catch(error => {
             console.error('Error:', error);
-            alert("Transaction failed. Please check console for details.");
+            showToastError("❌ Transaction failed. Please try again.");
         });
 
         if (action === 'withdraw') {
             const currentEmergencyBalance = getEmergencyFundBalance();
             if (parseFloat(amount) > currentEmergencyBalance) {
-                alert('You cannot withdraw more than the available emergency fund balance!');
+                showToastError('⛔ You cannot withdraw more than the available emergency fund balance!');
                 return;
             }
         }
